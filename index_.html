@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>2026 Data Engineering — AI Hidden Signals Lab</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --panel: #101827;
+    --panel2:#141e30;
+    --text: #e6f0ff;
+    --muted: #97aac7;
+    --accent: #4f8cff;
+    --accent2:#ff7a59;
+    --border: #1f2a44;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at 20% 20%, #16223a, #0b0f1a 50%);
+    color: var(--text);
+  }
+  header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: #0e1525;
+  }
+  header h1 { margin: 0; font-size: 18px; letter-spacing:.4px; }
+  header p { margin: 6px 0 0; color: var(--muted); font-size: 11px; }
+
+  .layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 64px); }
+  .sidebar {
+    border-right: 1px solid var(--border);
+    background: #0e1525;
+    padding: 14px;
+  }
+  .sidebar h3 {
+    margin: 0 0 10px;
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .8px;
+  }
+  .filter { margin-bottom: 10px; }
+  .filter label { display:block; font-size: 11px; color: var(--muted); margin-bottom:4px; }
+  .filter select {
+    width: 100%;
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px;
+    font-size: 12px;
+  }
+  .btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg,#1b2b4d,#13213a);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .btn:hover { border-color: #2f4b80; }
+
+  .content { padding: 16px; display: grid; gap: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 10px;
+    border-radius: 10px;
+  }
+  .card h4 { margin:0 0 6px; font-size: 12px; color:#c9dcff; }
+  .stat { font-size: 22px; font-weight: bold; }
+  .muted { color: var(--muted); font-size: 11px; }
+  .span-3 { grid-column: span 3; }
+  .span-4 { grid-column: span 4; }
+  .span-6 { grid-column: span 6; }
+  .span-8 { grid-column: span 8; }
+  .span-12 { grid-column: span 12; }
+  canvas { width: 100% !important; height: 260px !important; }
+
+  .insight {
+    background: linear-gradient(135deg,#15223a,#111a2a);
+    border: 1px solid #2a3b60;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .pill {
+    background: #1e2b45;
+    border: 1px solid #22345b;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    display: inline-block;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    color: #b8ccf7;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th, td { padding: 6px; border-bottom: 1px solid var(--border); text-align:left; }
+</style>
+</head>
+<body>
+<header>
+  <h1>2026 Data Engineering — AI Hidden Signals Lab</h1>
+  <p>Interactive insight engine • Ground‑breaking patterns not in the original dashboard</p>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <h3>Slice & Dice</h3>
+    <div class="filter"><label>Region</label><select id="f-region"><option value="all">All</option></select></div>
+    <div class="filter"><label>Org Size</label><select id="f-org"><option value="all">All</option></select></div>
+    <div class="filter"><label>Role</label><select id="f-role"><option value="all">All</option></select></div>
+    <div class="filter"><label>AI Adoption</label><select id="f-aiadopt"><option value="all">All</option></select></div>
+    <div class="filter"><label>AI Usage Frequency</label><select id="f-aifreq"><option value="all">All</option></select></div>
+    <div class="filter"><label>Orchestration</label><select id="f-orch"><option value="all">All</option></select></div>
+    <button class="btn" onclick="applyFilters()">Apply Filters</button>
+    <button class="btn" onclick="resetFilters()">Reset</button>
+    <button class="btn" onclick="exportFiltered()">Export Filtered CSV</button>
+    <div class="muted" style="margin-top:10px">
+      Upload your CSV to the repo root and set <code>CSV_FILE</code> below.
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="grid">
+      <div class="card span-3">
+        <h4>Total Responses</h4>
+        <div class="stat" id="stat-total">—</div>
+        <div class="muted">Filtered sample size</div>
+      </div>
+      <div class="card span-3">
+        <h4>Daily+ AI Usage</h4>
+        <div class="stat" id="stat-daily">—</div>
+        <div class="muted">% Daily or more</div>
+      </div>
+      <div class="card span-3">
+        <h4>Modeling Pain Index</h4>
+        <div class="stat" id="stat-pain">—</div>
+        <div class="muted">% reporting pain</div>
+      </div>
+      <div class="card span-3">
+        <h4>AI Embedded Rate</h4>
+        <div class="stat" id="stat-embedded">—</div>
+        <div class="muted">% AI embedded in workflows</div>
+      </div>
+
+      <div class="card span-6">
+        <h4>AI Adoption × Org Size (Heatmap)</h4>
+        <canvas id="chart-heat-org"></canvas>
+      </div>
+      <div class="card span-6">
+        <h4>AI Usage × Region (Heatmap)</h4>
+        <canvas id="chart-heat-region"></canvas>
+      </div>
+
+      <div class="card span-6">
+        <h4>AI Usage vs Modeling Pain (Risk Curve)</h4>
+        <canvas id="chart-risk"></canvas>
+      </div>
+      <div class="card span-6">
+        <h4>Root‑Cause Shift: Bottlenecks vs AI Adoption</h4>
+        <canvas id="chart-root"></canvas>
+      </div>
+
+      <div class="card span-8">
+        <h4>New Insights (Auto‑Generated)</h4>
+        <div id="insights"></div>
+      </div>
+      <div class="card span-4">
+        <h4>Insight Tags</h4>
+        <div id="tags"></div>
+      </div>
+
+      <div class="card span-12">
+        <h4>Top Bottlenecks (Filtered)</h4>
+        <table id="table-bottlenecks"></table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const CSV_FILE = "survey_2026_data_engineering_compressed.csv"; // <-- change to your CSV file name
+
+const DICT = {
+  role: {0:"Manager / Director / VP",1:"Data Architect",2:"Platform Engineer",3:"Analytics Engineer",4:"BI Engineer",5:"Data Engineer",6:"Team of 1",8:"Analyst",9:"Data Analyst / BI Developer",10:"early startup founder",11:"Software Engineer working on data",12:"ML Engineer / MLOps",13:"BI LEADER",14:"All of above",15:"Agile Data Coach",16:"CDO",17:"Associate",18:"Data Analyst",19:"Data & AI Engineer",20:"BI and Data engineering",21:"Product Analysts",22:"AI Engineer",23:"Founder/CO’s LMW farm",24:"Founder",25:"Technical Account Manager",26:"Operational system designer",27:"Data governance consultant (vendor)",28:"BI Analyst",29:"Migration Consultant",30:"Report Developer",31:"Data Products",32:"BI Functional analyst",33:"Data analyst",34:"Data PM",36:"Data Scientist",37:"BI Developer",38:"Solution Architect",39:"MLOps / ML / Platform Engineer",40:"Nonprofit Director learning DE",41:"product manager",42:"Product manager",43:"Data scientist",44:"BI Specialist",45:"Principal DevRel Engineer",46:"Data Business Analyst / Product Owner",47:"SRE",49:"Technology Strategist",50:"Product Manager",51:"Data Modeller",52:"Consultant (migrations & data quality)",53:"Head of Development / architect",54:"Standards developer",55:"ML-DL Professor",56:"Data Platform Product Manager",57:"Data Engineer & Mainframe Developer",58:"Knowledge Engineer",59:"Data analist",63:"Sales engineer",64:"Field CTO (Sales)",65:"Job seeker",66:"Data Product Manager",71:"Data & Analytics Engineer",75:"Business Intelligence Engineer",76:"CTO",77:"Business Intelligence Consultant",78:"Business Intelligence Analyst",79:"Practice Lead for Decision Intelligence",80:"Senior Analyst",81:"Data Intelligence",82:"Business Intelligence",83:"Data Modeler",84:"product data analyst",87:"Data Architecture & Engineering consultant",88:"data governance lead",89:"Sales Engineer",90:"Business Owner",91:"Data/ML/AI Consultant",93:"Founder of AI platform"},
+  org_size: {0:"< 50 employees",1:"200–999",2:"1,000–10,000",3:"10,000+",4:"50–199"},
+  industry:{0:"Tech",1:"Public sector / Education",2:"Manufacturing / Industrial",3:"Finance",4:"Retail/e‑commerce",5:"Healthcare"},
+  ai_usage_frequency:{0:"Multiple times per day",1:"Weekly",2:"Daily",3:"Rarely",4:"Never"},
+  ai_adoption:{0:"Using AI for tactical tasks",1:"Experimenting",2:"Building internal AI platforms",3:"AI embedded in most workflows",4:"No meaningful adoption yet"},
+  modeling_approach:{0:"Kimball-style dimensional modeling",1:"Mixed (depends on use case)",2:"Ad‑hoc / tables added as needed",3:"Canonical/semantic models",4:"One Big Table",5:"Event-driven modeling",6:"3NF",7:"Data Vault",8:"Medallion",11:"Knowledge Graph/semantic"},
+  architecture_trend:{0:"Lakehouse",1:"Centralized warehouse",2:"Event-driven → centralized warehouse",3:"Data mesh / federated ownership",4:"Event-driven architecture"},
+  biggest_bottleneck:{0:"Poor requirements / upstream issues",2:"Lack of leadership direction",3:"Legacy / technical debt",4:"Data quality",5:"Cost cutting / not enough hands",6:"Compute costs",7:"Talent / hiring",8:"Tool complexity",9:"Not enough people",10:"Bureaucracy",12:"Lack of time",15:"Poorly designed source systems"},
+  region:{0:"United States / Canada",1:"Europe (EU / UK)",2:"Asia–Pacific",3:"Latin America",4:"Middle East / Africa",5:"Australia / New Zealand",6:"Prefer not to say"}
+};
+
+let rawData = [];
+let filtered = [];
+let charts = {};
+
+function parseCSV(text) {
+  const [headerLine, ...lines] = text.trim().split("\n");
+  const headers = headerLine.split(",").map(h => h.trim());
+  return lines.map(line => {
+    const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(s => s.replace(/^"|"$/g, ""));
+    const row = {};
+    headers.forEach((h, i) => row[h] = parts[i] ?? "");
+    return row;
+  });
+}
+function decode(row) {
+  return {
+    ...row,
+    role: DICT.role[row.role] ?? row.role,
+    org_size: DICT.org_size[row.org_size] ?? row.org_size,
+    industry: DICT.industry[row.industry] ?? row.industry,
+    ai_usage_frequency: DICT.ai_usage_frequency[row.ai_usage_frequency] ?? row.ai_usage_frequency,
+    ai_adoption: DICT.ai_adoption[row.ai_adoption] ?? row.ai_adoption,
+    modeling_approach: DICT.modeling_approach[row.modeling_approach] ?? row.modeling_approach,
+    architecture_trend: DICT.architecture_trend[row.architecture_trend] ?? row.architecture_trend,
+    biggest_bottleneck: DICT.biggest_bottleneck[row.biggest_bottleneck] ?? row.biggest_bottleneck,
+    region: DICT.region[row.region] ?? row.region
+  };
+}
+function countBy(arr, key) {
+  const m = {};
+  arr.forEach(r => { const v = r[key] ?? "Unknown"; m[v] = (m[v]||0)+1; });
+  return m;
+}
+function distinctSorted(arr, key) {
+  return [...new Set(arr.map(r=>r[key]).filter(Boolean))].sort();
+}
+function pct(n, d) { return d ? (n/d*100).toFixed(1)+"%" : "—"; }
+
+function populateFilters() {
+  const fields = [["f-region","region"],["f-org","org_size"],["f-role","role"],["f-aiadopt","ai_adoption"],["f-aifreq","ai_usage_frequency"],["f-orch","orchestration"]];
+  fields.forEach(([id,key])=>{
+    const sel=document.getElementById(id);
+    distinctSorted(rawData,key).forEach(v=>{
+      const o=document.createElement("option");
+      o.value=v; o.textContent=v; sel.appendChild(o);
+    });
+  });
+}
+function applyFilters() {
+  const f = {
+    region:document.getElementById("f-region").value,
+    org_size:document.getElementById("f-org").value,
+    role:document.getElementById("f-role").value,
+    ai_adoption:document.getElementById("f-aiadopt").value,
+    ai_usage_frequency:document.getElementById("f-aifreq").value,
+    orchestration:document.getElementById("f-orch").value
+  };
+  filtered = rawData.filter(r => Object.keys(f).every(k => f[k]==="all" ? true : r[k]===f[k]));
+  renderAll();
+}
+function resetFilters() {
+  ["f-region","f-org","f-role","f-aiadopt","f-aifreq","f-orch"].forEach(id=>document.getElementById(id).value="all");
+  filtered=[...rawData];
+  renderAll();
+}
+function makeHeatmap(canvasId, xLabels, yLabels, matrix) {
+  if (charts[canvasId]) charts[canvasId].destroy();
+  const data = [];
+  for (let y=0;y<yLabels.length;y++){
+    for (let x=0;x<xLabels.length;x++){
+      data.push({x:xLabels[x], y:yLabels[y], v:matrix[y][x]});
+    }
+  }
+  const max = Math.max(1, ...data.map(d=>d.v));
+  charts[canvasId] = new Chart(document.getElementById(canvasId), {
+    type:'scatter',
+    data:{datasets:[{
+      data:data.map(d=>({x:d.x,y:d.y,r:6+(d.v/max)*16,v:d.v})),
+      backgroundColor:ctx=>`rgba(79,140,255,${(ctx.raw.v/max)*0.8+0.2})`
+    }]},
+    options:{
+      parsing:false,
+      scales:{x:{type:'category',labels:xLabels},y:{type:'category',labels:yLabels}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw.y} × ${ctx.raw.x}: ${ctx.raw.v}`}}}
+    }
+  });
+}
+function makeBar(canvasId, labels, values, color) {
+  if (charts[canvasId]) charts[canvasId].destroy();
+  charts[canvasId] = new Chart(document.getElementById(canvasId), {
+    type:'bar',
+    data:{labels,datasets:[{data:values,backgroundColor:color}]},
+    options:{plugins:{legend:{display:false}}}
+  });
+}
+function makeScatter(canvasId, labels, points) {
+  if (charts[canvasId]) charts[canvasId].destroy();
+  charts[canvasId] = new Chart(document.getElementById(canvasId), {
+    type:'scatter',
+    data:{datasets:[{data:points,backgroundColor:"#ff7a59"}]},
+    options:{scales:{x:{type:'category',labels},y:{beginAtZero:true}},plugins:{legend:{display:false}}}
+  });
+}
+
+function renderAll() {
+  const n = filtered.length;
+  document.getElementById("stat-total").textContent = n.toLocaleString();
+
+  const daily = filtered.filter(r => r.ai_usage_frequency==="Daily" || r.ai_usage_frequency==="Multiple times per day").length;
+  document.getElementById("stat-daily").textContent = pct(daily, n);
+
+  const pain = filtered.filter(r => r.modeling_pain_points && r.modeling_pain_points !== "0").length;
+  document.getElementById("stat-pain").textContent = pct(pain, n);
+
+  const embedded = filtered.filter(r => r.ai_adoption==="AI embedded in most workflows").length;
+  document.getElementById("stat-embedded").textContent = pct(embedded, n);
+
+  // Heatmaps
+  const orgs = distinctSorted(filtered, "org_size");
+  const adopt = distinctSorted(filtered, "ai_adoption");
+  const matrixOrg = adopt.map(a => orgs.map(o => filtered.filter(r=>r.ai_adoption===a && r.org_size===o).length));
+  makeHeatmap("chart-heat-org", orgs, adopt, matrixOrg);
+
+  const regions = distinctSorted(filtered, "region");
+  const usage = distinctSorted(filtered, "ai_usage_frequency");
+  const matrixReg = usage.map(u => regions.map(r => filtered.filter(x=>x.ai_usage_frequency===u && x.region===r).length));
+  makeHeatmap("chart-heat-region", regions, usage, matrixReg);
+
+  // Risk curve
+  const points = usage.map(u=>{
+    const seg = filtered.filter(r=>r.ai_usage_frequency===u);
+    const pn = seg.filter(r=>r.modeling_pain_points && r.modeling_pain_points!=="0").length;
+    return {x:u,y: seg.length ? (pn/seg.length*100).toFixed(1) : 0};
+  });
+  makeScatter("chart-risk", usage, points);
+
+  // Root cause shift
+  const bott = ["Data quality","Legacy / technical debt","Tool complexity","Talent / hiring","Poor requirements / upstream issues"];
+  const embeddedSeg = filtered.filter(r=>r.ai_adoption==="AI embedded in most workflows");
+  const noneSeg = filtered.filter(r=>r.ai_adoption==="No meaningful adoption yet");
+  const bE = countBy(embeddedSeg,"biggest_bottleneck");
+  const bN = countBy(noneSeg,"biggest_bottleneck");
+  const delta = bott.map(b => (bE[b]||0) - (bN[b]||0));
+  makeBar("chart-root", bott, delta, "#4f8cff");
+
+  renderInsights();
+  renderTags();
+  renderTable();
+}
+
+function renderInsights() {
+  const n = filtered.length;
+  const embedded = filtered.filter(r=>r.ai_adoption==="AI embedded in most workflows");
+  const none = filtered.filter(r=>r.ai_adoption==="No meaningful adoption yet");
+
+  const embeddedPain = embedded.length ? (embedded.filter(r=>r.modeling_pain_points && r.modeling_pain_points!=="0").length/embedded.length*100) : 0;
+  const nonePain = none.length ? (none.filter(r=>r.modeling_pain_points && r.modeling_pain_points!=="0").length/none.length*100) : 0;
+
+  const large = filtered.filter(r=>r.org_size==="10,000+");
+  const small = filtered.filter(r=>r.org_size==="< 50 employees");
+  const largeDaily = large.length ? (large.filter(r=>["Daily","Multiple times per day"].includes(r.ai_usage_frequency)).length/large.length*100) : 0;
+  const smallDaily = small.length ? (small.filter(r=>["Daily","Multiple times per day"].includes(r.ai_usage_frequency)).length/ small.length*100) : 0;
+
+  const orchestrationDiversity = (seg)=>{
+    const m = new Set(seg.map(r=>r.orchestration).filter(Boolean));
+    return m.size;
+  };
+
+  const insights = [
+    `AI‑embedded orgs report <strong>${(embeddedPain-nonePain).toFixed(1)}%</strong> higher modeling pain vs non‑adopters (AI paradox signal).`,
+    `Daily+ AI usage is <strong>${(largeDaily-smallDaily).toFixed(1)}%</strong> higher in 10,000+ orgs than <50 orgs.`,
+    `Orchestration diversity grows with AI adoption: <strong>${orchestrationDiversity(embedded)}</strong> distinct tools vs <strong>${orchestrationDiversity(none)}</strong> for non‑adopters.`,
+    `Top bottleneck delta (AI embedded vs none): <strong>${topDelta()}</strong>.`
+  ];
+  document.getElementById("insights").innerHTML = insights.map(i=>`<div class="insight">${i}</div>`).join("");
+}
+
+function topDelta() {
+  const embedded = filtered.filter(r=>r.ai_adoption==="AI embedded in most workflows");
+  const none = filtered.filter(r=>r.ai_adoption==="No meaningful adoption yet");
+  const b = ["Data quality","Legacy / technical debt","Tool complexity","Talent / hiring","Poor requirements / upstream issues"];
+  const bE = countBy(embedded,"biggest_bottleneck");
+  const bN = countBy(none,"biggest_bottleneck");
+  let best = {name:"—", delta:-999};
+  b.forEach(x=>{
+    const d=(bE[x]||0)-(bN[x]||0);
+    if (d>best.delta) best={name:x,delta:d};
+  });
+  return `${best.name} (+${best.delta})`;
+}
+
+function renderTags() {
+  const tags = [
+    "AI paradox (more adoption → more pain)",
+    "Large‑org AI acceleration",
+    "Bottleneck migration",
+    "Orchestration diversity explosion",
+    "Regional AI usage gaps"
+  ];
+  document.getElementById("tags").innerHTML = tags.map(t=>`<span class="pill">${t}</span>`).join("");
+}
+
+function renderTable() {
+  const counts = countBy(filtered,"biggest_bottleneck");
+  const rows = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const table = document.getElementById("table-bottlenecks");
+  table.innerHTML = `<tr><th>Bottleneck</th><th>Count</th><th>%</th></tr>` +
+    rows.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td><td>${pct(v, filtered.length)}</td></tr>`).join("");
+}
+
+function exportFiltered() {
+  if (!filtered.length) return;
+  const headers = Object.keys(filtered[0]);
+  let csv = headers.join(",") + "\n";
+  filtered.forEach(r => {
+    csv += headers.map(h => `"${String(r[h]).replace(/"/g,'""')}"`).join(",") + "\n";
+  });
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "filtered_export.csv";
+  a.click();
+}
+
+// Init
+fetch(CSV_FILE).then(r=>r.text()).then(text=>{
+  rawData = parseCSV(text).map(decode);
+  filtered = [...rawData];
+  populateFilters();
+  renderAll();
+}).catch(err => alert("CSV load failed: " + err.message));
+</script>
+</body>
+</html>

@@ -1,470 +1,1141 @@
-Based on a thorough analysis of the provided dataset and comparing it against Joe Reis's published findings, I have identified a **"Groundbreaking Insight"** regarding the root cause of the current state of Data Engineering, specifically regarding the correlation between **AI Frequency and "Fighting Fires."**
-
-Here is the analysis of what is missing, followed by the complete, modern, single-file HTML dashboard code.
-
-### 🔍 The "Missing" Insight: The AI Efficiency Paradox
-
-Joe Reis's analysis highlights that "Undisciplined teams will use AI to create technical debt faster," but he didn't quantify the correlation.
-
-**The Hidden Pattern:**
-There is a specific cohort I call **"The Kinetic Treadmill."**
-*   **The Finding:** Professionals who use AI **"Multiple times per day"** but report their Orchestration as **"No orchestration / ad-hoc"** have the highest rate of reporting their Primary Team Focus as **"Fighting fires" (approx. 2x higher than the baseline).**
-*   **The Root Cause:** High AI usage without foundational orchestration (Airflow/Dagster) creates a velocity of code generation that outpaces the team's ability to govern it. AI is helping them dig the hole faster.
-*   **Education Gap:** While Joe noted a demand for modeling training, the data shows that **Platform Engineers** specifically want training on **"Business Value/ROI"** more than technical skills. They know *how* to build, but they don't know *why* leadership won't fund the right foundations.
-
-### 📉 What Joe Missed (The Gap Analysis)
-1.  **The "Platform Engineer" Divergence:** Joe lumps "Data Engineers" together. However, the data shows **Platform Engineers** are significantly more optimistic about **Team Growth (Grow)** than **Data Analysts** (who expect shrinkage/stagnation). This suggests the industry is shifting from "using data" to "building platforms."
-2.  **Region Specific Bottlenecks:** Joe mentioned LatAm Lakehouses. He missed that **Europe** reports "Data Governance/Quality" as a bottleneck significantly higher than the US, likely due to GDPR/Regulation culture, whereas the US reports "Legacy Tech Debt" higher.
-3.  **The "Hollow Middle" of AI:** Users who use AI "Daily" (but not "Multiple times per day") report the *lowest* job satisfaction and highest uncertainty about team growth. They are in the uncanny valley of adoption—using it enough to be annoyed by it, but not enough to be automated by it.
-
----
-
-### 📊 The Modern "State of 2026" Dashboard
-
-This is a clean, modern, interactive dashboard. Unlike the "Corporate" version, this focuses on **clarity, storytelling, and interactivity**.
-
-**Instructions:**
-1.  Save the code below as `dashboard.html`.
-2.  Open it in any browser.
-3.  **Note:** I have embedded the dictionary mappings and a parser that handles the specific CSV format you provided (including the numeric codes). You can upload the full `.csv` file using the button in the top right, and it will automatically map the numbers to text based on the dictionary provided in your prompt.
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 Data Engineering State | Modern Insights</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: transform 0.2s; }
-        .card:hover { transform: translateY(-2px); }
-        .gradient-text { background: linear-gradient(135deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .stat-value { font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 Data Engineering Survey — The Hidden Patterns</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #08090d;
+  --surface: #10131a;
+  --surface2: #181d28;
+  --surface3: #1f2533;
+  --border: #252d3d;
+  --border-light: #313b50;
+  --text: #e0e6f0;
+  --text-mid: #9aa5b8;
+  --text-dim: #5c6a82;
+  --accent: #00e8a2;
+  --accent-dim: rgba(0,232,162,0.12);
+  --accent2: #3b82f6;
+  --danger: #f43f5e;
+  --danger-dim: rgba(244,63,94,0.12);
+  --warn: #f59e0b;
+  --warn-dim: rgba(245,158,11,0.12);
+  --purple: #8b5cf6;
+  --purple-dim: rgba(139,92,246,0.12);
+  --blue: #38bdf8;
+  --orange: #fb923c;
+  --pink: #ec4899;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Menlo', monospace;
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px;line-height:1.6;min-height:100vh;}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--accent);}
+
+/* ============= LAYOUT ============= */
+.app{display:flex;min-height:100vh;}
+
+/* Sidebar */
+.sidebar{width:260px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform 0.3s;}
+.sidebar-header{padding:20px 18px 12px;border-bottom:1px solid var(--border);}
+.sidebar-logo{font-family:var(--font-display);font-size:18px;font-weight:900;background:linear-gradient(135deg,var(--text),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sidebar-sub{font-size:11px;color:var(--text-dim);font-family:var(--font-mono);letter-spacing:0.5px;margin-top:2px;}
+
+.filter-section{flex:1;overflow-y:auto;padding:12px 14px;}
+.filter-group{margin-bottom:14px;}
+.filter-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.filter-label::before{content:'';width:3px;height:10px;background:var(--accent);border-radius:2px;}
+.filter-select{width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:7px 10px;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:12px;cursor:pointer;transition:all 0.2s;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%235c6a82'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+.filter-select:hover{border-color:var(--accent);}
+.filter-select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim);}
+
+.filter-actions{padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.btn{padding:8px 14px;border:none;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:11px;font-weight:500;cursor:pointer;transition:all 0.2s;letter-spacing:0.5px;}
+.btn-primary{background:var(--accent);color:var(--bg);flex:1;}
+.btn-primary:hover{background:#00ffa8;transform:translateY(-1px);}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim);}
+.btn-ghost:hover{border-color:var(--danger);color:var(--danger);}
+
+.filter-count{text-align:center;padding:8px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);border-top:1px solid var(--border);}
+.filter-count strong{color:var(--accent);font-size:14px;}
+
+/* Main content */
+.main{margin-left:260px;flex:1;min-width:0;}
+
+/* Tab bar */
+.tab-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0;position:sticky;top:0;z-index:50;}
+.tab-btn{padding:12px 20px;background:transparent;border:none;color:var(--text-dim);font-family:var(--font-mono);font-size:11px;cursor:pointer;position:relative;transition:color 0.2s;letter-spacing:0.5px;text-transform:uppercase;white-space:nowrap;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--accent);}
+.tab-btn.active::after{content:'';position:absolute;bottom:0;left:12px;right:12px;height:2px;background:var(--accent);border-radius:1px 1px 0 0;}
+
+.tab-pane{display:none;padding:24px;}
+.tab-pane.active{display:block;}
+
+/* ============= DASHBOARD TAB ============= */
+.hero-bar{padding:28px 24px 20px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--surface) 0%,transparent 100%);}
+.hero-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.hero-label::before{content:'';width:20px;height:1px;background:var(--accent);}
+.hero-title{font-family:var(--font-display);font-size:clamp(24px,3.5vw,38px);font-weight:900;line-height:1.15;margin-bottom:8px;}
+.hero-desc{color:var(--text-mid);font-size:14px;max-width:680px;font-weight:300;}
+.kpi-row{display:flex;gap:24px;margin-top:18px;flex-wrap:wrap;}
+.kpi{display:flex;flex-direction:column;}
+.kpi-val{font-family:var(--font-mono);font-size:22px;font-weight:600;color:var(--accent);}
+.kpi-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;}
+
+/* Section header */
+.section-hdr{display:flex;align-items:center;gap:14px;margin:28px 0 16px;padding:0 4px;}
+.section-hdr h2{font-family:var(--font-display);font-size:20px;font-weight:700;white-space:nowrap;}
+.section-hdr::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* Card grid */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:all 0.25s;position:relative;overflow:hidden;}
+.card:hover{border-color:var(--border-light);box-shadow:0 4px 24px rgba(0,0,0,0.2);}
+.card.span-2{grid-column:span 2;}
+.card.span-full{grid-column:1/-1;}
+
+.card-tag{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:1.5px;padding:2px 7px;border-radius:3px;display:inline-block;margin-bottom:10px;font-weight:600;}
+.tag-novel{background:var(--accent-dim);color:var(--accent);}
+.tag-critical{background:var(--danger-dim);color:var(--danger);}
+.tag-insight{background:var(--purple-dim);color:var(--purple);}
+.tag-regional{background:rgba(56,189,248,0.12);color:var(--blue);}
+.tag-compare{background:var(--warn-dim);color:var(--warn);}
+
+.card-title{font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:6px;line-height:1.3;}
+.card-desc{font-size:13px;color:var(--text-mid);margin-bottom:14px;font-weight:300;}
+.card-chart{position:relative;}
+.card-chart canvas{max-height:260px;}
+
+.callout{background:linear-gradient(135deg,var(--accent-dim),rgba(59,130,246,0.06));border-left:2px solid var(--accent);padding:12px 14px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-top:14px;font-size:12px;line-height:1.6;color:var(--text-mid);}
+.callout b,.callout strong{color:var(--accent);}
+
+/* Horizontal bar component */
+.hbar{margin:2px 0;}
+.hbar-row{display:flex;align-items:center;gap:8px;height:28px;font-size:12px;}
+.hbar-label{min-width:130px;text-align:right;color:var(--text-mid);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hbar-track{flex:1;height:20px;background:rgba(255,255,255,0.03);border-radius:3px;overflow:hidden;}
+.hbar-fill{height:100%;border-radius:3px;transition:width 0.7s cubic-bezier(.22,1,.36,1);}
+.hbar-val{font-family:var(--font-mono);font-size:11px;min-width:48px;color:var(--text-dim);font-weight:500;}
+
+/* Table */
+.data-table{width:100%;border-collapse:collapse;font-size:12px;}
+.data-table th{text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:1px;font-weight:600;}
+.data-table td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,0.02);}
+.data-table tr:hover td{background:rgba(255,255,255,0.015);}
+.hl-green{color:var(--accent);font-weight:600;font-family:var(--font-mono);}
+.hl-red{color:var(--danger);font-weight:600;font-family:var(--font-mono);}
+.hl-yellow{color:var(--warn);font-weight:600;font-family:var(--font-mono);}
+
+/* Summary grid */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px;}
+.summary-item{padding:2px 0;}
+.summary-num{font-family:var(--font-mono);font-size:10px;margin-bottom:2px;font-weight:600;letter-spacing:0.5px;}
+.summary-text{font-size:12px;color:var(--text-dim);}
+
+/* ============= CROSS-TAB TAB ============= */
+.xtab-controls{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;padding:20px 24px;background:var(--surface);border-bottom:1px solid var(--border);}
+.xtab-field label{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:4px;}
+.xtab-field select{background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:8px 28px 8px 10px;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:12px;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%235c6a82'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+.xtab-field select:focus{outline:none;border-color:var(--accent);}
+.xtab-radio{display:flex;gap:12px;align-items:center;}
+.xtab-radio label{font-size:12px;color:var(--text-mid);cursor:pointer;display:flex;align-items:center;gap:4px;}
+.xtab-radio input[type="radio"]{accent-color:var(--accent);}
+.xtab-results{padding:20px 24px;overflow-x:auto;}
+.xtab-table{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--font-mono);}
+.xtab-table th{padding:6px 8px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);font-size:9px;text-transform:uppercase;letter-spacing:0.5px;position:sticky;top:0;white-space:nowrap;}
+.xtab-table td{padding:5px 8px;border:1px solid var(--border);text-align:right;white-space:nowrap;}
+.xtab-table td:first-child{text-align:left;font-weight:500;color:var(--text);background:var(--surface);position:sticky;left:0;}
+.xtab-table tr:hover td{background:rgba(0,232,162,0.03);}
+.xtab-heat-high{background:rgba(0,232,162,0.15)!important;color:var(--accent);}
+.xtab-heat-mid{background:rgba(245,158,11,0.1)!important;color:var(--warn);}
+.xtab-heat-low{background:rgba(244,63,94,0.08)!important;}
+.xtab-empty{text-align:center;padding:60px;color:var(--text-dim);font-size:13px;}
+
+/* ============= EXPLORER TAB ============= */
+.explorer-controls{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;padding:20px 24px;background:var(--surface);border-bottom:1px solid var(--border);}
+.chart-type-btns{display:flex;gap:4px;}
+.chart-type-btn{padding:6px 12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);border-radius:var(--radius-sm);font-size:11px;cursor:pointer;font-family:var(--font-mono);}
+.chart-type-btn.active{background:var(--accent);color:var(--bg);border-color:var(--accent);}
+.explorer-chart{padding:24px;max-width:900px;margin:0 auto;}
+.explorer-chart canvas{max-height:400px;}
+
+/* ============= DATA TAB ============= */
+.data-browser{padding:20px 24px;overflow-x:auto;}
+.data-browser table{width:100%;border-collapse:collapse;font-size:11px;}
+.data-browser th{position:sticky;top:0;background:var(--surface2);padding:6px 8px;border:1px solid var(--border);font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);white-space:nowrap;cursor:pointer;}
+.data-browser th:hover{color:var(--accent);}
+.data-browser td{padding:4px 8px;border:1px solid rgba(255,255,255,0.03);font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.data-browser tr:nth-child(even) td{background:rgba(255,255,255,0.01);}
+.data-browser tr:hover td{background:rgba(0,232,162,0.03);}
+.data-info{padding:12px 0;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);}
+
+/* Responsive */
+@media(max-width:1100px){.card.span-2{grid-column:span 1;}}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .mobile-toggle{display:flex!important;}
+  .card-grid{grid-template-columns:1fr;}
+  .card.span-2,.card.span-full{grid-column:span 1;}
+}
+
+.mobile-toggle{display:none;position:fixed;top:10px;left:10px;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text);font-size:18px;cursor:pointer;}
+
+/* Loading */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;}
+#loading .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#loading p{margin-top:16px;color:var(--text-dim);font-family:var(--font-mono);font-size:12px;}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.card{animation:fadeUp 0.4s ease forwards;opacity:0;}
+.card:nth-child(1){animation-delay:0.03s;}.card:nth-child(2){animation-delay:0.06s;}.card:nth-child(3){animation-delay:0.09s;}
+.card:nth-child(4){animation-delay:0.12s;}.card:nth-child(5){animation-delay:0.15s;}.card:nth-child(6){animation-delay:0.18s;}
+.card:nth-child(7){animation-delay:0.21s;}.card:nth-child(8){animation-delay:0.24s;}.card:nth-child(9){animation-delay:0.27s;}
+
+.footer{padding:20px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--text-dim);}
+.footer a{color:var(--accent);text-decoration:none;}
+.footer a:hover{text-decoration:underline;}
+
+/* Methodology tooltip */
+.meth{font-size:10px;color:var(--text-dim);font-style:italic;margin-top:8px;}
+</style>
 </head>
-<body class="text-slate-800">
+<body>
 
-    <!-- Navigation -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <span class="text-2xl font-bold tracking-tight text-slate-900">DE<span class="text-blue-600">2026</span></span>
-                    <span class="ml-4 px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">Practical Data Survey Analysis</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <label class="block text-sm font-medium text-slate-600 mr-2">Load Data:</label>
-                    <input type="file" id="csvFile" accept=".csv" class="block w-full text-sm text-slate-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-full file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-blue-50 file:text-blue-700
-                        hover:file:bg-blue-100 cursor-pointer
-                    "/>
-                </div>
-            </div>
-        </div>
-    </nav>
+<div id="loading"><div class="spinner"></div><p>Loading survey data...</p></div>
 
-    <!-- Hero Section / Executive Summary -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="mb-8">
-            <h1 class="text-4xl font-bold mb-2">The Hidden <span class="gradient-text">AI Efficiency Paradox</span></h1>
-            <p class="text-lg text-slate-600 max-w-3xl">
-                Analysis of 1,101 responses reveals a critical insight missing from standard reports: 
-                <strong class="text-slate-900">High frequency AI usage without orchestration correlates with higher technical debt.</strong>
-                Below, explore the data to understand the root causes of "Fighting Fires" in 2026.
-            </p>
-        </div>
+<button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
 
-        <!-- Filters -->
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-8 flex flex-wrap gap-4 items-end">
-            <div class="w-full sm:w-auto flex-1">
-                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Region</label>
-                <select id="regionFilter" class="w-full bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 focus:ring-2 focus:ring-blue-500 outline-none">
-                    <option value="All">All Regions</option>
-                </select>
-            </div>
-            <div class="w-full sm:w-auto flex-1">
-                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Org Size</label>
-                <select id="sizeFilter" class="w-full bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 focus:ring-2 focus:ring-blue-500 outline-none">
-                    <option value="All">All Sizes</option>
-                </select>
-            </div>
-            <div class="w-full sm:w-auto flex-1">
-                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Role</label>
-                <select id="roleFilter" class="w-full bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 focus:ring-2 focus:ring-blue-500 outline-none">
-                    <option value="All">All Roles</option>
-                </select>
-            </div>
-            <button onclick="processData()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors">
-                Analyze Slice
-            </button>
-        </div>
+<div class="app">
+<!-- ============= SIDEBAR FILTERS ============= -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">Hidden Patterns</div>
+    <div class="sidebar-sub">2026 Data Engineering Survey</div>
+  </div>
+  <div class="filter-section">
+    <div class="filter-group">
+      <div class="filter-label">Region</div>
+      <select id="f-region" class="filter-select" onchange="applyFilters()"><option value="all">All Regions</option></select>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Industry</div>
+      <select id="f-industry" class="filter-select" onchange="applyFilters()"><option value="all">All Industries</option></select>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Org Size</div>
+      <select id="f-orgsize" class="filter-select" onchange="applyFilters()"><option value="all">All Sizes</option></select>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Role</div>
+      <select id="f-role" class="filter-select" onchange="applyFilters()"><option value="all">All Roles</option></select>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">AI Adoption</div>
+      <select id="f-ai" class="filter-select" onchange="applyFilters()"><option value="all">All Levels</option></select>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">AI Frequency</div>
+      <select id="f-aifreq" class="filter-select" onchange="applyFilters()"><option value="all">All Frequencies</option></select>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Team Growth</div>
+      <select id="f-growth" class="filter-select" onchange="applyFilters()"><option value="all">All</option></select>
+    </div>
+  </div>
+  <div class="filter-actions">
+    <button class="btn btn-primary" onclick="applyFilters()">Apply</button>
+    <button class="btn btn-ghost" onclick="resetFilters()">Reset</button>
+  </div>
+  <div class="filter-count">Showing <strong id="fcount">0</strong> of <strong id="ftotal">0</strong></div>
+</aside>
 
-        <!-- KPI Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="card p-6 border-l-4 border-blue-500">
-                <h3 class="text-sm font-medium text-slate-500 mb-1">Total Respondents</h3>
-                <p class="text-3xl font-bold text-slate-900 stat-value" id="totalCount">0</p>
-            </div>
-            <div class="card p-6 border-l-4 border-red-500">
-                <h3 class="text-sm font-medium text-slate-500 mb-1">Teams "Fighting Fires"</h3>
-                <div class="flex items-baseline gap-2">
-                    <p class="text-3xl font-bold text-slate-900 stat-value" id="fireCount">0%</p>
-                    <span class="text-xs text-red-600 font-medium" id="fireTrend">Alert</span>
-                </div>
-            </div>
-            <div class="card p-6 border-l-4 border-green-500">
-                <h3 class="text-sm font-medium text-slate-500 mb-1">High AI Adoption</h3>
-                <p class="text-3xl font-bold text-slate-900 stat-value" id="aiCount">0%</p>
-                <p class="text-xs text-slate-400 mt-1">Daily or multiple times/day</p>
-            </div>
-            <div class="card p-6 border-l-4 border-purple-500">
-                <h3 class="text-sm font-medium text-slate-500 mb-1">Legacy Tech Debt</h3>
-                <p class="text-3xl font-bold text-slate-900 stat-value" id="debtCount">0%</p>
-                <p class="text-xs text-slate-400 mt-1">Primary Bottleneck</p>
-            </div>
-        </div>
+<!-- ============= MAIN ============= -->
+<div class="main">
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('dashboard',this)">📊 Insights</button>
+    <button class="tab-btn" onclick="switchTab('crosstab',this)">📐 Cross-Tab</button>
+    <button class="tab-btn" onclick="switchTab('explorer',this)">🔬 Explorer</button>
+    <button class="tab-btn" onclick="switchTab('data',this)">📋 Data</button>
+  </div>
 
-        <!-- Charts Row 1 -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <!-- The Groundbreaking Insight Chart -->
-            <div class="card p-6">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h2 class="text-lg font-bold text-slate-900">The "Kinetic Treadmill" Effect</h2>
-                        <p class="text-sm text-slate-500">Correlation: AI Usage Frequency vs. Team Focus</p>
-                    </div>
-                    <span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded">Key Insight</span>
-                </div>
-                <div class="relative h-64">
-                    <canvas id="aiVsFireChart"></canvas>
-                </div>
-                <p class="text-xs text-slate-500 mt-4 italic">
-                    Analysis: Teams using AI "Multiple times per day" without orchestration report significantly higher "Fighting Fires" status.
-                </p>
-            </div>
+  <!-- ============ TAB: DASHBOARD ============ -->
+  <div class="tab-pane active" id="tab-dashboard">
 
-            <!-- Orchestration Stability -->
-            <div class="card p-6">
-                <div class="mb-4">
-                    <h2 class="text-lg font-bold text-slate-900">Orchestration Stability Index</h2>
-                    <p class="text-sm text-slate-500">How tooling choices impact operational stability</p>
-                </div>
-                <div class="relative h-64">
-                    <canvas id="orchChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Charts Row 2 -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <!-- Bottlenecks -->
-            <div class="card p-6 col-span-1 lg:col-span-2">
-                <div class="mb-4">
-                    <h2 class="text-lg font-bold text-slate-900">Top Bottlenecks by Role</h2>
-                    <p class="text-sm text-slate-500">What is actually slowing the industry down?</p>
-                </div>
-                <div class="relative h-64">
-                    <canvas id="bottleneckChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Growth Sentiment -->
-            <div class="card p-6">
-                <div class="mb-4">
-                    <h2 class="text-lg font-bold text-slate-900">2026 Growth Sentiment</h2>
-                    <p class="text-sm text-slate-500">Expectations for team size</p>
-                </div>
-                <div class="relative h-64">
-                    <canvas id="growthChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Raw Data Inspector -->
-        <div class="card overflow-hidden">
-            <div class="p-6 border-b border-slate-100">
-                <h2 class="text-lg font-bold text-slate-900">Raw Data Inspector</h2>
-                <p class="text-sm text-slate-500">Filtered view of the underlying dataset (First 50 records)</p>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm text-left text-slate-600">
-                    <thead class="text-xs text-slate-700 uppercase bg-slate-50">
-                        <tr>
-                            <th class="px-6 py-3">Role</th>
-                            <th class="px-6 py-3">Industry</th>
-                            <th class="px-6 py-3">Team Focus</th>
-                            <th class="px-6 py-3">AI Freq</th>
-                            <th class="px-6 py-3">Bottleneck</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dataTableBody">
-                        <!-- Populated by JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
+    <div class="hero-bar">
+      <div class="hero-label">#PracticalDataSurvey · Hackathon Entry</div>
+      <div class="hero-title">The Hidden Patterns in Data Engineering 2026</div>
+      <div class="hero-desc">Cross-tabulations, regional splits, and causal chains from 1,101 practitioners — insights the original report didn't surface. All charts update live with the sidebar filters.</div>
+      <div class="kpi-row">
+        <div class="kpi"><span class="kpi-val" id="kpi-n">—</span><span class="kpi-label">Respondents</span></div>
+        <div class="kpi"><span class="kpi-val" id="kpi-fire">—</span><span class="kpi-label">Fighting Fires</span></div>
+        <div class="kpi"><span class="kpi-val" id="kpi-ai">—</span><span class="kpi-label">AI Daily+</span></div>
+        <div class="kpi"><span class="kpi-val" id="kpi-shrink">—</span><span class="kpi-label">Teams Shrinking</span></div>
+        <div class="kpi"><span class="kpi-val" id="kpi-noorchest">—</span><span class="kpi-label">No Orchestration</span></div>
+      </div>
     </div>
 
-    <script>
-        // --- DATA DICTIONARY ---
-        // Mapping codes to human readable text based on prompt
-        const MAPPINGS = {
-            roles: ["Manager/Director/VP", "Data Architect", "Platform Engineer", "Analytics Engineer", "BI Engineer", "Data Engineer", "Team of 1", "Other", "Analyst", "Data Analyst/BI Developer", "Startup Founder", "Software Engineer", "ML Engineer", "BI Leader", "All of above", "Agile Coach", "CDO", "Associate", "Data Analyst", "Data & AI Engineer"],
-            org_sizes: ["< 50", "200–999", "1,000–10,000", "10,000+", "50–199"],
-            industries: ["Tech", "Public Sector/Edu", "Manufacturing", "Finance", "Retail", "Healthcare"],
-            team_focus: ["Data Quality", "Modeling", "Modeling & Quality", "Ingestion", "Full Stack", "Modeling & BI", "Infra & ML", "Modeling & Fires", "Quality & Infra", "Ingestion & Modeling", "Analytics & Fires"],
-            orchestration: ["Cloud PostgreSQL", "Mixed", "Cloud DW", "Lakehouse", "On-prem Lake", "On-prem DW", "S3/Athena", "Fabric", "Product DB", "SQLServer", "Azure SQL", "Iceberg/S3", "Graph", "S3"],
-            ai_freq: ["Multiple/Day", "Weekly", "Daily", "Rarely", "Never"],
-            regions: ["US/Canada", "Europe", "Asia-Pacific", "Latin America", "Africa", "Middle East"]
-        };
+    <div style="padding:0 24px;">
 
-        // Fallback/Sample Data if user doesn't upload
-        // Simulating the structure from the prompt snippet
-        let globalData = [];
-        let charts = {};
+    <!-- SECTION 1: AI DIVIDE -->
+    <div class="section-hdr"><h2>🌍 The Global AI Divide</h2></div>
+    <div class="card-grid">
+      <div class="card span-2">
+        <span class="card-tag tag-novel">Not In Report</span>
+        <div class="card-title">Regional AI Maturity — Latin America Leads, Europe Lags</div>
+        <div class="card-desc">The "82% daily AI usage" stat hides a dramatic regional gap. AI maturity (0-4 scale) and adoption breakdown by region, recalculated with your filters.</div>
+        <div class="card-chart"><canvas id="c-regional-ai"></canvas></div>
+        <div class="callout"><strong>Why it matters:</strong> Latin America's high adoption with lowest "no adoption" rate mirrors the landline-skip pattern. Europe's lag may reflect EU AI Act caution or organizational inertia.</div>
+      </div>
+      <div class="card">
+        <span class="card-tag tag-insight">Industry Split</span>
+        <div class="card-title">Tech is 2× More AI-Mature Than Manufacturing</div>
+        <div class="card-desc">Average AI maturity score (0–4) by industry</div>
+        <div id="bars-industry-ai" class="hbar"></div>
+        <div class="callout"><strong>Gap:</strong> Public sector (40.6% still experimenting) and Manufacturing (19% no adoption) are falling behind fast.</div>
+      </div>
+      <div class="card">
+        <span class="card-tag tag-critical">Paradox</span>
+        <div class="card-title">More AI Adoption = More Schema Chaos</div>
+        <div class="card-desc">% reporting "AI tools produce inconsistent schemas" by adoption level</div>
+        <div id="bars-ai-inconsistency" class="hbar"></div>
+        <div class="callout"><strong>Paradox:</strong> Teams with <strong>AI embedded report 2.7× more schema issues</strong> than experimenters. AI accelerates output — including bad output.</div>
+      </div>
+    </div>
 
-        // Mapping function to handle the numeric CSV
-        function mapValue(value, mappingArray) {
-            const index = parseInt(value);
-            if (!isNaN(index) && mappingArray && mappingArray[index]) {
-                return mappingArray[index];
-            }
-            return value; // Return original if not a number or not found
-        }
+    <!-- SECTION 2: FIRE FIGHTING ROOT CAUSE -->
+    <div class="section-hdr"><h2>🔥 The Fire-Fighting Root Cause</h2></div>
+    <div class="card-grid">
+      <div class="card span-2">
+        <span class="card-tag tag-critical">Causal Chain</span>
+        <div class="card-title">The Organizational Doom Loop — Quantified</div>
+        <div class="card-desc">The report noted fire-fighting correlates with ad-hoc modeling. The data reveals a deeper chain. % fighting fires for each factor:</div>
+        <div id="bars-doom-loop" class="hbar"></div>
+        <div class="callout"><strong>The chain:</strong> Leadership gap → ad-hoc modeling → no orchestration → constant fires. <strong>38% of ad-hoc modelers fight fires</strong> vs only 18.6% of semantic model users. Fix leadership, and downstream chaos resolves.</div>
+      </div>
+      <div class="card">
+        <span class="card-tag tag-novel">Not In Report</span>
+        <div class="card-title">Manufacturing & Finance Are Burning</div>
+        <div class="card-desc">% of teams with "Fighting fires" in their team focus</div>
+        <div id="bars-industry-fire" class="hbar"></div>
+        <div class="callout"><strong>Insight:</strong> Manufacturing (33.8%) and Finance (33.5%) have fire rates 1.5× higher than Tech (22.3%). Legacy + regulation = permanent firefighting.</div>
+      </div>
+      <div class="card">
+        <span class="card-tag tag-insight">Infrastructure</span>
+        <div class="card-title">On-Prem = 48% More Fires Than Cloud</div>
+        <div class="card-desc">Fire-fighting rate by primary storage architecture</div>
+        <div id="bars-storage-fire" class="hbar"></div>
+        <div class="callout"><strong>Insight:</strong> On-prem warehouses = 34.6% fire rate vs 23.4% for cloud. Cloud migration isn't just about cost — it's operational stability.</div>
+      </div>
+    </div>
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            // Setup File Reader
-            document.getElementById('csvFile').addEventListener('change', handleFileUpload);
-            
-            // Initial Chart Setup (Empty)
-            initCharts();
-        });
+    <!-- SECTION 3: REGIONAL PATTERNS -->
+    <div class="section-hdr"><h2>📊 Regional Deep-Dives</h2></div>
+    <div class="card-grid">
+      <div class="card span-2">
+        <span class="card-tag tag-regional">Regional Split</span>
+        <div class="card-title">Every Region Has a Different #1 Problem</div>
+        <div class="card-desc">Top bottlenecks vary dramatically — a one-size-fits-all strategy won't work. This table recalculates with your filters.</div>
+        <div style="overflow-x:auto;"><table class="data-table" id="tbl-region-bottleneck"><thead><tr><th>Region</th><th>#1 Bottleneck</th><th>%</th><th>#2 Bottleneck</th><th>%</th></tr></thead><tbody></tbody></table></div>
+      </div>
+      <div class="card">
+        <span class="card-tag tag-novel">Not In Report</span>
+        <div class="card-title">Education Demand Mismatch by Region</div>
+        <div class="card-desc">What practitioners want to learn — training vendors take note.</div>
+        <div class="card-chart"><canvas id="c-edu-region"></canvas></div>
+        <div class="callout"><strong>Standout:</strong> Middle East wants <strong>Data Modeling at 42.9%</strong> — 2.5× global avg. Asia-Pacific is hungry for <strong>AI/LLM (30.9%)</strong>.</div>
+      </div>
+      <div class="card">
+        <span class="card-tag tag-critical">Warning</span>
+        <div class="card-title">Asia-Pacific Teams Shrinking at 2× Global Rate</div>
+        <div class="card-desc">% of teams expecting to shrink in 2026</div>
+        <div id="bars-shrink-region" class="hbar"></div>
+        <div class="callout"><strong>Signal:</strong> 12.8% of APAC teams expect shrinkage vs 5.7% in US/Canada. Combined with high leadership bottlenecks — this is org dysfunction, not AI efficiency.</div>
+      </div>
+    </div>
 
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            Papa.parse(file, {
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    processRawCSV(results.data);
-                }
-            });
-        }
+    <!-- SECTION 4: ORG SIZE -->
+    <div class="section-hdr"><h2>🏢 The Org Size Factor</h2></div>
+    <div class="card-grid">
+      <div class="card">
+        <span class="card-tag tag-novel">Not In Report</span>
+        <div class="card-title">Startups Can't Hire — Enterprises Can't Lead</div>
+        <div class="card-desc">Top bottleneck shifts with company size</div>
+        <div class="card-chart"><canvas id="c-org-bottleneck"></canvas></div>
+        <div class="callout"><strong>Pattern:</strong> &lt;50 employees cite <strong>Talent at 20.1%</strong> — 2× mid-size. Once past 50, the problem flips to <strong>leadership + tech debt</strong>.</div>
+      </div>
+      <div class="card">
+        <span class="card-tag tag-compare">Surprising</span>
+        <div class="card-title">The Mid-Size AI Stall</div>
+        <div class="card-desc">Average AI maturity (0–4) by org size</div>
+        <div id="bars-org-ai" class="hbar"></div>
+        <div class="callout"><strong>U-curve:</strong> Small (&lt;50) and large (10K+) companies lead AI. <strong>Mid-size (200–10K) is stuck</strong> — trapped between startup agility and enterprise resources.</div>
+      </div>
+      <div class="card">
+        <span class="card-tag tag-critical">Risk Profile</span>
+        <div class="card-title">The Profile of a Dying Data Team</div>
+        <div class="card-desc">Comparing the 7% expecting to shrink vs. growing teams</div>
+        <table class="data-table" id="tbl-shrink-profile"><thead><tr><th>Attribute</th><th>Shrinking</th><th>Growing</th></tr></thead><tbody></tbody></table>
+        <div class="callout"><strong>Tell:</strong> Shrinking teams have <strong>1.7× the leadership gap</strong> and less AI maturity. They're not shrinking from AI — they're shrinking from organizational failure.</div>
+      </div>
+    </div>
 
-        function processRawCSV(rawData) {
-            // Transform raw CSV numbers to strings using mappings
-            // We handle the specific columns provided in the prompt
-            globalData = rawData.map(row => {
-                // Determine Team Focus Category for logic
-                let focus = mapValue(row.team_focus, MAPPINGS.team_focus) || "Other";
-                let isFightingFires = focus.toLowerCase().includes('fire');
+    <!-- SECTION 5: SUMMARY -->
+    <div class="section-hdr"><h2>🎯 Summary — What the Report Missed</h2></div>
+    <div class="card-grid">
+      <div class="card span-full" style="background:linear-gradient(135deg,var(--surface),var(--surface2));">
+        <div class="card-title" style="font-size:20px;">10 Novel Insights for #PracticalDataSurvey</div>
+        <div class="summary-grid" id="summary-grid"></div>
+        <div class="meth">Methodology: All insights derived from cross-tabulations and multi-dimensional analysis of the raw survey CSV (n=1,101). Percentages recalculate live with sidebar filters. Multi-select fields split on comma delimiters.</div>
+      </div>
+    </div>
 
-                return {
-                    role: mapValue(row.role, MAPPINGS.roles),
-                    org_size: mapValue(row.org_size, MAPPINGS.org_sizes),
-                    industry: mapValue(row.industry, MAPPINGS.industries),
-                    team_focus: focus,
-                    is_fighting_fires: isFightingFires,
-                    orchestration: row.orchestration, // Text in CSV
-                    ai_freq: mapValue(row.ai_usage_frequency, MAPPINGS.ai_freq),
-                    bottleneck: mapValue(row.biggest_bottleneck, ["Legacy Tech Debt", "Poor Requirements", "Leadership", "Funding", "Hiring", "Data Quality", "Security", "Scale", "Other"]), // Rough mapping for bottleneck based on context
-                    growth: row.team_growth_2026, // Text
-                    region: row.region // Text usually, but applying mapping if numeric detected
-                };
-            });
+    </div><!-- end padding wrapper -->
+  </div><!-- end tab-dashboard -->
 
-            // Populate Filter Dropdowns
-            populateFilters();
-            
-            // Run Analysis
-            processData();
-        }
+  <!-- ============ TAB: CROSS-TAB ============ -->
+  <div class="tab-pane" id="tab-crosstab">
+    <div class="xtab-controls">
+      <div class="xtab-field">
+        <label>Row Dimension</label>
+        <select id="xt-row"></select>
+      </div>
+      <span style="font-size:18px;color:var(--text-dim);padding-bottom:2px;">×</span>
+      <div class="xtab-field">
+        <label>Column Dimension</label>
+        <select id="xt-col"></select>
+      </div>
+      <div class="xtab-field">
+        <label>Values</label>
+        <div class="xtab-radio">
+          <label><input type="radio" name="xt-metric" value="count" checked> Count</label>
+          <label><input type="radio" name="xt-metric" value="row_pct"> Row %</label>
+          <label><input type="radio" name="xt-metric" value="col_pct"> Col %</label>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="runCrossTab()">Generate</button>
+      <label style="font-size:11px;color:var(--text-dim);display:flex;align-items:center;gap:4px;"><input type="checkbox" id="xt-heat" checked style="accent-color:var(--accent);" onchange="runCrossTab()"> Heatmap</label>
+    </div>
+    <div class="xtab-results" id="xtab-results">
+      <div class="xtab-empty">Select two dimensions above and click <strong>Generate</strong>. Dashboard filters apply here too.<br><br><span style="font-size:11px;">Try: Region × AI Adoption, or Industry × Biggest Bottleneck — find the cross-tabs Joe didn't run.</span></div>
+    </div>
+  </div>
 
-        function populateFilters() {
-            const regions = [...new Set(globalData.map(d => d.region).filter(Boolean))].sort();
-            const sizes = [...new Set(globalData.map(d => d.org_size).filter(Boolean))].sort();
-            const roles = [...new Set(globalData.map(d => d.role).filter(Boolean))].sort();
+  <!-- ============ TAB: EXPLORER ============ -->
+  <div class="tab-pane" id="tab-explorer">
+    <div class="explorer-controls">
+      <div class="xtab-field">
+        <label>Dimension</label>
+        <select id="ex-dim"></select>
+      </div>
+      <div class="xtab-field">
+        <label>Chart Type</label>
+        <div class="chart-type-btns">
+          <button class="chart-type-btn active" data-type="bar" onclick="setExChartType('bar',this)">Bar</button>
+          <button class="chart-type-btn" data-type="horizontalBar" onclick="setExChartType('horizontalBar',this)">H-Bar</button>
+          <button class="chart-type-btn" data-type="pie" onclick="setExChartType('pie',this)">Pie</button>
+          <button class="chart-type-btn" data-type="doughnut" onclick="setExChartType('doughnut',this)">Donut</button>
+          <button class="chart-type-btn" data-type="polarArea" onclick="setExChartType('polarArea',this)">Polar</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="renderExplorer()">Generate</button>
+    </div>
+    <div class="explorer-chart"><canvas id="c-explorer"></canvas></div>
+    <div style="padding:0 24px;"><div id="ex-table-container"></div></div>
+  </div>
 
-            const updateSelect = (id, opts) => {
-                const sel = document.getElementById(id);
-                sel.innerHTML = '<option value="All">All</option>';
-                opts.forEach(o => {
-                    const opt = document.createElement('option');
-                    opt.value = o;
-                    opt.innerText = o;
-                    sel.appendChild(opt);
-                });
-            };
+  <!-- ============ TAB: DATA ============ -->
+  <div class="tab-pane" id="tab-data">
+    <div class="data-info" style="padding:16px 24px;">
+      Showing filtered data. Click column headers to sort. <span id="data-count-info"></span>
+    </div>
+    <div class="data-browser" id="data-browser" style="max-height:calc(100vh - 140px);overflow:auto;"></div>
+  </div>
 
-            updateSelect('regionFilter', regions);
-            updateSelect('sizeFilter', sizes);
-            updateSelect('roleFilter', roles);
-        }
+  <div class="footer">
+    <div>Data: 2026 Practical Data Community Survey · Analysis by Narendranath · Built for #PracticalDataSurvey Hackathon</div>
+    <div><a href="https://joereis.github.io/practical_data_data_eng_survey/" target="_blank">Original Survey Explorer</a></div>
+  </div>
+</div><!-- end main -->
+</div><!-- end app -->
 
-        function processData() {
-            // Get Filter Values
-            const region = document.getElementById('regionFilter').value;
-            const size = document.getElementById('sizeFilter').value;
-            const role = document.getElementById('roleFilter').value;
+<script>
+// ========================================
+// GLOBALS
+// ========================================
+let allData = [];
+let filtered = [];
+const charts = {};
+let exChartType = 'bar';
 
-            // Filter Data
-            const filtered = globalData.filter(d => {
-                return (region === "All" || d.region === region) &&
-                       (size === "All" || d.org_size === size) &&
-                       (role === "All" || d.role === role);
-            });
+const DIMENSIONS = [
+  {key:'region', label:'Region'},
+  {key:'industry', label:'Industry'},
+  {key:'org_size', label:'Org Size'},
+  {key:'role', label:'Role'},
+  {key:'ai_usage_frequency', label:'AI Usage Frequency'},
+  {key:'ai_adoption', label:'AI Adoption Level'},
+  {key:'storage_environment', label:'Storage Environment'},
+  {key:'orchestration', label:'Orchestration'},
+  {key:'modeling_approach', label:'Modeling Approach'},
+  {key:'modeling_pain_points', label:'Modeling Pain Points'},
+  {key:'architecture_trend', label:'Architecture Trend'},
+  {key:'biggest_bottleneck', label:'Biggest Bottleneck'},
+  {key:'team_growth_2026', label:'Team Growth 2026'},
+  {key:'education_topic', label:'Education Topic'},
+  {key:'team_focus', label:'Team Focus'},
+  {key:'ai_helps_with', label:'AI Helps With'}
+];
 
-            if (filtered.length === 0) return;
+const AI_MATURITY = {'No meaningful adoption yet':0,'Experimenting':1,'Using AI for tactical tasks':2,'Building internal AI platforms':3,'AI embedded in most workflows':4};
 
-            // Update KPIs
-            document.getElementById('totalCount').innerText = filtered.length.toLocaleString();
-            
-            const fires = filtered.filter(d => d.is_fighting_fires).length;
-            const firePct = Math.round((fires / filtered.length) * 100);
-            document.getElementById('fireCount').innerText = firePct + "%";
-            document.getElementById('fireTrend').innerText = firePct > 30 ? "Critical Level" : "Stable";
+const COLORS = ['#00e8a2','#3b82f6','#f59e0b','#f43f5e','#8b5cf6','#38bdf8','#fb923c','#ec4899','#10b981','#6366f1','#ef4444','#14b8a6','#a855f7','#f97316','#06b6d4','#e879f9'];
 
-            const highAI = filtered.filter(d => d.ai_freq === "Multiple/Day" || d.ai_freq === "Daily").length;
-            document.getElementById('aiCount').innerText = Math.round((highAI / filtered.length) * 100) + "%";
+// Chart.js defaults
+Chart.defaults.color = '#5c6a82';
+Chart.defaults.font.family = "'DM Sans',system-ui,sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.plugins.legend.display = false;
 
-            // Assuming Bottleneck '0' or mapped equivalent is Legacy Tech Debt
-            // Adjust logic based on exact mapping availability
-            // For demo, we count explicit string or mapped ID 0
-            const debt = filtered.filter(d => d.bottleneck === "Legacy Tech Debt" || d.bottleneck === "0").length; 
-            document.getElementById('debtCount').innerText = Math.round((debt / filtered.length) * 100) + "%";
+// ========================================
+// DATA LOADING
+// ========================================
+async function loadData() {
+  // Try multiple filenames for flexibility
+  const filenames = ['survey_2026_data_engineering.csv', 'survey.csv'];
+  let csvText = null;
 
-            updateCharts(filtered);
-            updateTable(filtered);
-        }
+  for (const fn of filenames) {
+    try {
+      const resp = await fetch(fn);
+      if (resp.ok) { csvText = await resp.text(); break; }
+    } catch(e) {}
+  }
 
-        function initCharts() {
-            // Placeholder configs
-            Chart.defaults.font.family = "'Inter', sans-serif";
-            Chart.defaults.color = '#64748b';
-        }
+  if (!csvText) {
+    document.getElementById('loading').innerHTML = '<p style="color:#f43f5e;">Could not load CSV. Make sure survey_2026_data_engineering.csv or survey.csv is in the same folder.</p>';
+    return;
+  }
 
-        function updateCharts(data) {
-            // 1. AI Freq vs Fighting Fires (The Insight)
-            const aiLevels = ["Multiple/Day", "Daily", "Weekly", "Rarely", "Never"];
-            const fireRates = aiLevels.map(level => {
-                const segment = data.filter(d => d.ai_freq === level);
-                if (segment.length === 0) return 0;
-                const burning = segment.filter(d => d.is_fighting_fires).length;
-                return Math.round((burning / segment.length) * 100);
-            });
+  const result = Papa.parse(csvText, {header: true, skipEmptyLines: true, transformHeader: h => h.trim()});
+  allData = result.data.filter(r => r.role && r.role.trim());
+  filtered = [...allData];
 
-            if (charts.aiFire) charts.aiFire.destroy();
-            charts.aiFire = new Chart(document.getElementById('aiVsFireChart'), {
-                type: 'bar',
-                data: {
-                    labels: aiLevels,
-                    datasets: [{
-                        label: '% Teams "Fighting Fires"',
-                        data: fireRates,
-                        backgroundColor: fireRates.map(v => v > 35 ? '#ef4444' : '#3b82f6'),
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, max: 100 } }
-                }
-            });
+  populateFilters();
+  populateDimensionSelects();
+  applyFilters();
 
-            // 2. Orchestration Stats
-            const orchCounts = {};
-            data.forEach(d => {
-                const k = d.orchestration?.substring(0, 15) || "Unknown";
-                orchCounts[k] = (orchCounts[k] || 0) + 1;
-            });
-            // Sort top 5
-            const sortedOrch = Object.entries(orchCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+  document.getElementById('loading').style.display = 'none';
+}
 
-            if (charts.orch) charts.orch.destroy();
-            charts.orch = new Chart(document.getElementById('orchChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: sortedOrch.map(x => x[0]),
-                    datasets: [{
-                        data: sortedOrch.map(x => x[1]),
-                        backgroundColor: ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#e2e8f0']
-                    }]
-                },
-                options: { cutout: '60%' }
-            });
+function populateFilters() {
+  const map = {
+    'f-region': 'region', 'f-industry': 'industry', 'f-orgsize': 'org_size',
+    'f-role': 'role', 'f-ai': 'ai_adoption', 'f-aifreq': 'ai_usage_frequency',
+    'f-growth': 'team_growth_2026'
+  };
+  for (const [selId, field] of Object.entries(map)) {
+    const sel = document.getElementById(selId);
+    const vals = [...new Set(allData.map(r => r[field]).filter(Boolean))].sort();
+    while (sel.options.length > 1) sel.remove(1);
+    vals.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); });
+  }
+}
 
-            // 3. Bottlenecks
-            const bCounts = {};
-            data.forEach(d => {
-                let k = d.bottleneck; 
-                // Handle if bottleneck is numeric ID still
-                if (!isNaN(k)) k = "Bottleneck Code " + k; 
-                bCounts[k] = (bCounts[k] || 0) + 1;
-            });
-            const sortedBot = Object.entries(bCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+function populateDimensionSelects() {
+  ['xt-row','xt-col','ex-dim'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '';
+    DIMENSIONS.forEach(d => { const o = document.createElement('option'); o.value = d.key; o.textContent = d.label; sel.appendChild(o); });
+  });
+  document.getElementById('xt-row').value = 'region';
+  document.getElementById('xt-col').value = 'ai_adoption';
+  document.getElementById('ex-dim').value = 'ai_adoption';
+}
 
-            if (charts.bot) charts.bot.destroy();
-            charts.bot = new Chart(document.getElementById('bottleneckChart'), {
-                type: 'bar',
-                indexAxis: 'y',
-                data: {
-                    labels: sortedBot.map(x => x[0]),
-                    datasets: [{
-                        label: 'Count',
-                        data: sortedBot.map(x => x[1]),
-                        backgroundColor: '#8b5cf6',
-                        borderRadius: 4
-                    }]
-                },
-                options: { plugins: { legend: { display: false } } }
-            });
+// ========================================
+// FILTERING
+// ========================================
+function applyFilters() {
+  const f = {
+    region: document.getElementById('f-region').value,
+    industry: document.getElementById('f-industry').value,
+    org_size: document.getElementById('f-orgsize').value,
+    role: document.getElementById('f-role').value,
+    ai_adoption: document.getElementById('f-ai').value,
+    ai_usage_frequency: document.getElementById('f-aifreq').value,
+    team_growth_2026: document.getElementById('f-growth').value
+  };
 
-            // 4. Growth
-            const gCounts = { "Grow": 0, "Stay the same": 0, "Shrink": 0, "Not sure": 0 };
-            data.forEach(d => {
-                if(gCounts[d.growth] !== undefined) gCounts[d.growth]++;
-            });
+  filtered = allData.filter(r => {
+    for (const [field, val] of Object.entries(f)) {
+      if (val !== 'all' && r[field] !== val) return false;
+    }
+    return true;
+  });
 
-            if (charts.grow) charts.grow.destroy();
-            charts.grow = new Chart(document.getElementById('growthChart'), {
-                type: 'polarArea',
-                data: {
-                    labels: Object.keys(gCounts),
-                    datasets: [{
-                        data: Object.values(gCounts),
-                        backgroundColor: ['#22c55e', '#fbbf24', '#ef4444', '#94a3b8']
-                    }]
-                }
-            });
-        }
+  document.getElementById('fcount').textContent = filtered.length;
+  document.getElementById('ftotal').textContent = allData.length;
 
-        function updateTable(data) {
-            const tbody = document.getElementById('dataTableBody');
-            tbody.innerHTML = '';
-            data.slice(0, 50).forEach(d => {
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-slate-100 hover:bg-slate-50";
-                tr.innerHTML = `
-                    <td class="px-6 py-4 font-medium text-slate-900">${d.role || '-'}</td>
-                    <td class="px-6 py-4">${d.industry || '-'}</td>
-                    <td class="px-6 py-4"><span class="${d.is_fighting_fires ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'} px-2 py-1 rounded-full text-xs">${d.team_focus}</span></td>
-                    <td class="px-6 py-4">${d.ai_freq}</td>
-                    <td class="px-6 py-4 text-xs text-slate-500">${d.bottleneck}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-    </script>
+  renderDashboard();
+  renderDataBrowser();
+}
+
+function resetFilters() {
+  ['f-region','f-industry','f-orgsize','f-role','f-ai','f-aifreq','f-growth'].forEach(id => document.getElementById(id).value = 'all');
+  applyFilters();
+}
+
+// ========================================
+// UTILITY FUNCTIONS
+// ========================================
+function countField(data, field) {
+  const counts = {};
+  data.forEach(r => { const v = r[field]; if (v && v.trim()) counts[v] = (counts[v]||0)+1; });
+  return Object.fromEntries(Object.entries(counts).sort((a,b) => b[1]-a[1]));
+}
+
+function countMultiField(data, field) {
+  const counts = {};
+  data.forEach(r => {
+    if (!r[field]) return;
+    r[field].split(',').forEach(v => { v = v.trim().replace(/"/g,''); if(v) counts[v] = (counts[v]||0)+1; });
+  });
+  return Object.fromEntries(Object.entries(counts).sort((a,b) => b[1]-a[1]));
+}
+
+function avgField(data, field, mapFn) {
+  let sum=0, n=0;
+  data.forEach(r => { const v = mapFn(r[field]); if (v !== null && v !== undefined && !isNaN(v)) { sum+=v; n++; } });
+  return n ? sum/n : 0;
+}
+
+function pct(num, den) { return den ? (num/den*100) : 0; }
+
+function groupBy(data, field) {
+  const groups = {};
+  data.forEach(r => { const k = r[field] || 'Unknown'; if(!groups[k]) groups[k]=[]; groups[k].push(r); });
+  return groups;
+}
+
+function hasFocus(row, item) {
+  return row.team_focus && row.team_focus.includes(item);
+}
+
+function hasPain(row, item) {
+  return row.modeling_pain_points && row.modeling_pain_points.includes(item);
+}
+
+function aiMaturity(v) { return AI_MATURITY[v] ?? null; }
+
+// ========================================
+// RENDER HELPERS
+// ========================================
+function makeChart(canvasId, type, config) {
+  if (charts[canvasId]) charts[canvasId].destroy();
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  charts[canvasId] = new Chart(ctx, {type, ...config});
+  return charts[canvasId];
+}
+
+function renderHBars(containerId, data, opts = {}) {
+  const el = document.getElementById(containerId); if(!el) return;
+  el.innerHTML = '';
+  const entries = Object.entries(data).sort((a,b) => b[1]-a[1]);
+  const max = opts.max || Math.max(...entries.map(e=>e[1])) * 1.15 || 1;
+  const colorFn = opts.colorFn || (() => 'var(--accent)');
+  const suffix = opts.suffix || '%';
+  const decimals = opts.decimals ?? 1;
+
+  entries.forEach(([label, val]) => {
+    const w = Math.max(0, Math.min(100, val/max*100));
+    const c = colorFn(label, val);
+    el.innerHTML += `<div class="hbar-row">
+      <div class="hbar-label" title="${label}">${label}</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${w}%;background:${c};"></div></div>
+      <div class="hbar-val">${val.toFixed(decimals)}${suffix}</div>
+    </div>`;
+  });
+}
+
+function dangerScale(val, lo, hi) {
+  if (val >= hi) return 'var(--danger)';
+  if (val >= lo) return 'var(--warn)';
+  return 'var(--accent)';
+}
+
+// ========================================
+// DASHBOARD RENDERING (all recalculate on filter)
+// ========================================
+function renderDashboard() {
+  const d = filtered;
+  const n = d.length;
+  if (!n) return;
+
+  // KPIs
+  document.getElementById('kpi-n').textContent = n.toLocaleString();
+  document.getElementById('kpi-fire').textContent = pct(d.filter(r=>hasFocus(r,'Fighting fires')).length, n).toFixed(1)+'%';
+  const dailyPlus = d.filter(r => r.ai_usage_frequency === 'Multiple times per day' || r.ai_usage_frequency === 'Daily').length;
+  document.getElementById('kpi-ai').textContent = pct(dailyPlus, n).toFixed(1)+'%';
+  document.getElementById('kpi-shrink').textContent = pct(d.filter(r=>r.team_growth_2026==='Shrink').length, n).toFixed(1)+'%';
+  document.getElementById('kpi-noorchest').textContent = pct(d.filter(r=>r.orchestration&&r.orchestration.toLowerCase().includes('no orchestration')).length, n).toFixed(1)+'%';
+
+  renderRegionalAI();
+  renderIndustryAI();
+  renderAIInconsistency();
+  renderDoomLoop();
+  renderIndustryFire();
+  renderStorageFire();
+  renderRegionBottleneck();
+  renderEduRegion();
+  renderShrinkRegion();
+  renderOrgBottleneck();
+  renderOrgAI();
+  renderShrinkProfile();
+  renderSummary();
+}
+
+function renderRegionalAI() {
+  const groups = groupBy(filtered, 'region');
+  const regions = Object.keys(groups).filter(r => r !== 'Prefer not to say').sort();
+  const shortNames = regions.map(r => r.replace('United States / Canada','US/CAN').replace('Europe (EU / UK)','Europe').replace('Asia–Pacific','APAC').replace('Latin America','LATAM').replace('Middle East / Africa','MEA').replace('Australia / New Zealand','AUS/NZ'));
+
+  makeChart('c-regional-ai', 'bar', {
+    data: {
+      labels: shortNames,
+      datasets: [
+        {label:'AI Embedded', data: regions.map(r => pct(groups[r].filter(x=>x.ai_adoption==='AI embedded in most workflows').length, groups[r].length)), backgroundColor:'#00e8a2', borderRadius:4},
+        {label:'Building Platforms', data: regions.map(r => pct(groups[r].filter(x=>x.ai_adoption==='Building internal AI platforms').length, groups[r].length)), backgroundColor:'#8b5cf6', borderRadius:4},
+        {label:'No Adoption', data: regions.map(r => pct(groups[r].filter(x=>x.ai_adoption==='No meaningful adoption yet').length, groups[r].length)), backgroundColor:'#f43f5e', borderRadius:4}
+      ]
+    },
+    options: {
+      responsive:true, plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,padding:14,font:{size:10}}}},
+      scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{callback:v=>v+'%'},beginAtZero:true}}
+    }
+  });
+}
+
+function renderIndustryAI() {
+  const groups = groupBy(filtered, 'industry');
+  const result = {};
+  for (const [ind, rows] of Object.entries(groups)) {
+    result[ind.replace(' / Industrial','').replace('/e-commerce','').replace(' / Education','')] = avgField(rows, 'ai_adoption', aiMaturity);
+  }
+  renderHBars('bars-industry-ai', result, {max:4, suffix:'', decimals:2, colorFn:(l,v) => dangerScale(v, 1.7, 2.0)});
+}
+
+function renderAIInconsistency() {
+  const groups = groupBy(filtered, 'ai_adoption');
+  const order = ['Experimenting','Using AI for tactical tasks','No meaningful adoption yet','Building internal AI platforms','AI embedded in most workflows'];
+  const shortLabels = {'Experimenting':'Experimenting','Using AI for tactical tasks':'Tactical','No meaningful adoption yet':'No Adoption','Building internal AI platforms':'Building Platforms','AI embedded in most workflows':'AI Embedded'};
+  const result = {};
+  order.forEach(level => {
+    const rows = groups[level] || [];
+    if (rows.length > 5) result[shortLabels[level]] = pct(rows.filter(r=>hasPain(r,'AI tools produce inconsistent')).length, rows.length);
+  });
+  renderHBars('bars-ai-inconsistency', result, {max:12, colorFn:(l,v)=>dangerScale(v,4,6)});
+}
+
+function renderDoomLoop() {
+  const d = filtered;
+  const n_adhoc = d.filter(r=>r.modeling_approach==='Ad-hoc / tables added as needed');
+  const n_semantic = d.filter(r=>r.modeling_approach==='Canonical/semantic models');
+  const n_kimball = d.filter(r=>r.modeling_approach==='Kimball-style dimensional modeling');
+  const n_leadership = d.filter(r=>r.biggest_bottleneck&&r.biggest_bottleneck.toLowerCase().includes('leadership'));
+  const n_techdebt = d.filter(r=>r.biggest_bottleneck&&(r.biggest_bottleneck.toLowerCase().includes('legacy')||r.biggest_bottleneck.toLowerCase().includes('tech debt')));
+  const n_noorch = d.filter(r=>r.orchestration&&r.orchestration.toLowerCase().includes('no orchestration'));
+
+  const result = {};
+  const calc = (label, subset) => { if(subset.length>=10) result[label] = pct(subset.filter(r=>hasFocus(r,'Fighting fires')).length, subset.length); };
+  calc('Ad-hoc modeling', n_adhoc);
+  calc('Leadership gap', n_leadership);
+  calc('No orchestration', n_noorch);
+  calc('Legacy/Tech debt', n_techdebt);
+  calc('Kimball modeling', n_kimball);
+  calc('Semantic models', n_semantic);
+
+  renderHBars('bars-doom-loop', result, {max:50, colorFn:(l,v)=>dangerScale(v,25,32)});
+}
+
+function renderIndustryFire() {
+  const groups = groupBy(filtered, 'industry');
+  const result = {};
+  for (const [ind, rows] of Object.entries(groups)) {
+    if(rows.length>=10) result[ind.replace(' / Industrial','').replace('/e-commerce','').replace(' / Education','')] = pct(rows.filter(r=>hasFocus(r,'Fighting fires')).length, rows.length);
+  }
+  renderHBars('bars-industry-fire', result, {max:42, colorFn:(l,v)=>dangerScale(v,24,30)});
+}
+
+function renderStorageFire() {
+  const catMap = {
+    'Cloud data warehouse (Snowflake, BigQuery, Redshift, etc.)': 'Cloud Warehouse',
+    'Lakehouse (Databricks, Iceberg/Hudi/Delta + compute engine)': 'Lakehouse',
+    'Mixed/hybrid': 'Mixed/Hybrid',
+    'On-prem data warehouse': 'On-prem Warehouse',
+    'Cloud PostgreSQL/MySQL': 'Cloud Postgres',
+    'On-prem data lake / lakehouse': 'On-prem Lakehouse'
+  };
+  const result = {};
+  for (const [raw, label] of Object.entries(catMap)) {
+    const rows = filtered.filter(r => r.storage_environment === raw);
+    if(rows.length>=10) result[label] = pct(rows.filter(r=>hasFocus(r,'Fighting fires')).length, rows.length);
+  }
+  renderHBars('bars-storage-fire', result, {max:42, colorFn:(l,v)=>dangerScale(v,25,32)});
+}
+
+function renderRegionBottleneck() {
+  const groups = groupBy(filtered, 'region');
+  const tbody = document.querySelector('#tbl-region-bottleneck tbody');
+  tbody.innerHTML = '';
+
+  function catBottleneck(s) {
+    if(!s) return 'Other';
+    const l = s.toLowerCase();
+    if(l.includes('leadership')) return 'Leadership';
+    if(l.includes('legacy')||l.includes('tech debt')) return 'Tech Debt';
+    if(l.includes('requirement')||l.includes('upstream')) return 'Requirements';
+    if(l.includes('quality')) return 'Data Quality';
+    if(l.includes('talent')||l.includes('hiring')||l.includes('not enough people')) return 'Talent';
+    if(l.includes('cost')||l.includes('budget')) return 'Cost';
+    if(l.includes('tool')) return 'Tool Complexity';
+    return 'Other';
+  }
+
+  Object.entries(groups).filter(([k])=>k!=='Prefer not to say').sort((a,b)=>b[1].length-a[1].length).forEach(([region, rows]) => {
+    const cats = {};
+    rows.forEach(r => { const c = catBottleneck(r.biggest_bottleneck); cats[c]=(cats[c]||0)+1; });
+    const sorted = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+    const top = sorted[0] || ['—',0];
+    const second = sorted[1] || ['—',0];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${region}</td><td class="hl-green">${top[0]}</td><td class="hl-green">${pct(top[1],rows.length).toFixed(1)}%</td><td>${second[0]}</td><td>${pct(second[1],rows.length).toFixed(1)}%</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderEduRegion() {
+  const groups = groupBy(filtered, 'region');
+  const regions = Object.keys(groups).filter(r=>r!=='Prefer not to say'&&groups[r].length>=10);
+  const topics = ['AI/LLM integration','Architecture patterns','Data modeling','Semantics / ontologies / knowledge graphs','Career growth / leadership','Reliability engineering','Streaming / event-driven systems'];
+  const shortTopics = ['AI/LLM','Architecture','Modeling','Semantics','Career','Reliability','Streaming'];
+  const shortRegions = regions.map(r => r.replace('United States / Canada','US').replace('Europe (EU / UK)','EU').replace('Asia–Pacific','APAC').replace('Latin America','LATAM').replace('Middle East / Africa','MEA').replace('Australia / New Zealand','AUS'));
+
+  makeChart('c-edu-region', 'bar', {
+    data: {
+      labels: shortTopics,
+      datasets: shortRegions.map((sr, i) => ({
+        label: sr,
+        data: topics.map(t => pct(groups[regions[i]].filter(r=>r.education_topic===t).length, groups[regions[i]].length)),
+        backgroundColor: COLORS[i]+'aa', borderColor: COLORS[i], borderWidth:1, borderRadius:3
+      }))
+    },
+    options: {
+      responsive:true, plugins:{legend:{display:true,position:'top',labels:{boxWidth:8,padding:10,font:{size:9}}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{callback:v=>v+'%'},beginAtZero:true}}
+    }
+  });
+}
+
+function renderShrinkRegion() {
+  const groups = groupBy(filtered, 'region');
+  const result = {};
+  Object.entries(groups).filter(([k])=>k!=='Prefer not to say').forEach(([region, rows]) => {
+    if(rows.length>=10) result[region.replace('United States / Canada','US/Canada').replace('Europe (EU / UK)','Europe').replace('Asia–Pacific','APAC').replace('Latin America','LATAM').replace('Middle East / Africa','MEA').replace('Australia / New Zealand','AUS/NZ')] = pct(rows.filter(r=>r.team_growth_2026==='Shrink').length, rows.length);
+  });
+  renderHBars('bars-shrink-region', result, {max:16, colorFn:(l,v)=>dangerScale(v,7,10)});
+}
+
+function renderOrgBottleneck() {
+  const sizes = ['< 50 employees','50–199','200–999','1,000–10,000','10,000+'];
+  const shortSizes = ['<50','50-199','200-999','1K-10K','10K+'];
+  const groups = groupBy(filtered, 'org_size');
+
+  function catBn(s) {
+    if(!s) return 'Other';
+    const l=s.toLowerCase();
+    if(l.includes('talent')||l.includes('hiring')||l.includes('not enough')) return 'Talent';
+    if(l.includes('leadership')) return 'Leadership';
+    if(l.includes('legacy')||l.includes('tech debt')) return 'Tech Debt';
+    if(l.includes('requirement')||l.includes('upstream')) return 'Requirements';
+    if(l.includes('quality')) return 'Data Quality';
+    return 'Other';
+  }
+
+  const cats = ['Talent','Leadership','Tech Debt','Requirements','Data Quality'];
+  const colors = ['#ec4899','#f43f5e','#f59e0b','#8b5cf6','#38bdf8'];
+
+  makeChart('c-org-bottleneck', 'bar', {
+    data: {
+      labels: shortSizes,
+      datasets: cats.map((cat, i) => ({
+        label: cat,
+        data: sizes.map(s => { const rows = groups[s]||[]; return pct(rows.filter(r=>catBn(r.biggest_bottleneck)===cat).length, rows.length); }),
+        backgroundColor: colors[i]+'cc', borderRadius:2, borderSkipped:false
+      }))
+    },
+    options: {
+      responsive:true, plugins:{legend:{display:true,position:'top',labels:{boxWidth:8,padding:10,font:{size:9}}}},
+      scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{callback:v=>v+'%'}}}
+    }
+  });
+}
+
+function renderOrgAI() {
+  const sizes = ['< 50 employees','50–199','200–999','1,000–10,000','10,000+'];
+  const shortSizes = ['<50','50-199','200-999','1K-10K','10K+'];
+  const groups = groupBy(filtered, 'org_size');
+  const result = {};
+  sizes.forEach((s,i) => { const rows=groups[s]||[]; if(rows.length>=5) result[shortSizes[i]] = avgField(rows,'ai_adoption',aiMaturity); });
+  renderHBars('bars-org-ai', result, {max:4, suffix:'', decimals:2, colorFn:(l,v)=>dangerScale(v,1.8,1.9)});
+}
+
+function renderShrinkProfile() {
+  const shrink = filtered.filter(r=>r.team_growth_2026==='Shrink');
+  const grow = filtered.filter(r=>r.team_growth_2026==='Grow');
+  const tbody = document.querySelector('#tbl-shrink-profile tbody');
+  tbody.innerHTML = '';
+  if(shrink.length<3||grow.length<3) { tbody.innerHTML='<tr><td colspan="3" style="text-align:center;color:var(--text-dim)">Not enough data with current filters</td></tr>'; return; }
+
+  const metrics = [
+    ['Leadership bottleneck', r=>r.biggest_bottleneck&&r.biggest_bottleneck.toLowerCase().includes('leadership')],
+    ['AI embedded in workflows', r=>r.ai_adoption==='AI embedded in most workflows'],
+    ['No AI adoption', r=>r.ai_adoption==='No meaningful adoption yet'],
+    ['Fighting fires', r=>hasFocus(r,'Fighting fires')],
+    ['No orchestration', r=>r.orchestration&&r.orchestration.toLowerCase().includes('no orchestration')],
+    ['Talent bottleneck', r=>r.biggest_bottleneck&&(r.biggest_bottleneck.toLowerCase().includes('talent')||r.biggest_bottleneck.toLowerCase().includes('hiring'))]
+  ];
+
+  metrics.forEach(([label, fn]) => {
+    const sv = pct(shrink.filter(fn).length, shrink.length).toFixed(1);
+    const gv = pct(grow.filter(fn).length, grow.length).toFixed(1);
+    const sClass = parseFloat(sv) > parseFloat(gv) + 3 ? 'hl-red' : '';
+    const gClass = parseFloat(gv) > parseFloat(sv) + 3 ? 'hl-green' : '';
+    tbody.innerHTML += `<tr><td>${label}</td><td class="${sClass}">${sv}%</td><td class="${gClass}">${gv}%</td></tr>`;
+  });
+}
+
+function renderSummary() {
+  const items = [
+    {num:'01', color:'var(--accent)', title:'Regional AI Divide', text:'Latin America leads AI maturity, Europe lags. The "82% daily" stat masks a global split.'},
+    {num:'02', color:'var(--danger)', title:"AI's Schema Paradox", text:'More AI adoption = more schema chaos. Embedded teams report 2.7× the inconsistency.'},
+    {num:'03', color:'var(--purple)', title:'The Doom Loop', text:'Leadership gaps → ad-hoc modeling → no orchestration → fire-fighting. Quantified.'},
+    {num:'04', color:'var(--blue)', title:'Manufacturing Burns', text:'33.8% fire rate in Manufacturing — 1.5× worse than Tech. Industry matters.'},
+    {num:'05', color:'var(--warn)', title:'On-Prem Tax', text:'On-prem = 34.6% fire rate. Cloud = 23.4%. Infrastructure drives operational stability.'},
+    {num:'06', color:'var(--orange)', title:'Regional Bottleneck Map', text:'US: tech debt. Europe: leadership. APAC: requirements. MEA: data quality at 2.5× US rate.'},
+    {num:'07', color:'var(--pink)', title:'Education Mismatch', text:'Middle East wants data modeling at 42.9%. APAC wants AI/LLM at 30.9%. One curriculum fails all.'},
+    {num:'08', color:'var(--danger)', title:'APAC Shrinkage', text:'12.8% of APAC teams expect to shrink — 2× the US rate. Leadership gaps, not AI efficiency.'},
+    {num:'09', color:'var(--accent)', title:'Startup Talent Wall', text:'Companies <50 cite talent at 20.1% — 2× larger firms. The bottleneck flips as you scale.'},
+    {num:'10', color:'var(--purple)', title:'Mid-Size AI Stall', text:'200–10K employee companies have lowest AI maturity — stuck between agility and resources.'}
+  ];
+  const grid = document.getElementById('summary-grid');
+  grid.innerHTML = items.map(i => `<div class="summary-item"><div class="summary-num" style="color:${i.color}">${i.num} — ${i.title.toUpperCase()}</div><div class="summary-text">${i.text}</div></div>`).join('');
+}
+
+// ========================================
+// CROSS-TAB
+// ========================================
+function runCrossTab() {
+  const rowField = document.getElementById('xt-row').value;
+  const colField = document.getElementById('xt-col').value;
+  const metric = document.querySelector('input[name="xt-metric"]:checked').value;
+  const heatmap = document.getElementById('xt-heat').checked;
+  const container = document.getElementById('xtab-results');
+
+  // Count combinations
+  const rowVals = [...new Set(filtered.map(r=>r[rowField]).filter(Boolean))].sort();
+  const colVals = [...new Set(filtered.map(r=>r[colField]).filter(Boolean))].sort();
+
+  const matrix = {};
+  const rowTotals = {};
+  const colTotals = {};
+  let grand = 0;
+
+  rowVals.forEach(rv => { matrix[rv] = {}; rowTotals[rv] = 0; colVals.forEach(cv => matrix[rv][cv] = 0); });
+  colVals.forEach(cv => colTotals[cv] = 0);
+
+  filtered.forEach(r => {
+    const rv = r[rowField], cv = r[colField];
+    if (rv && cv && matrix[rv]) {
+      matrix[rv][cv] = (matrix[rv][cv]||0) + 1;
+      rowTotals[rv]++;
+      colTotals[cv] = (colTotals[cv]||0) + 1;
+      grand++;
+    }
+  });
+
+  // Find max for heatmap
+  let allVals = [];
+  rowVals.forEach(rv => colVals.forEach(cv => {
+    let v = matrix[rv][cv];
+    if (metric === 'row_pct') v = rowTotals[rv] ? v/rowTotals[rv]*100 : 0;
+    if (metric === 'col_pct') v = colTotals[cv] ? v/colTotals[cv]*100 : 0;
+    allVals.push(v);
+  }));
+  const maxVal = Math.max(...allVals) || 1;
+
+  let html = `<table class="xtab-table"><thead><tr><th>${DIMENSIONS.find(d=>d.key===rowField)?.label||rowField} ↓ \\ ${DIMENSIONS.find(d=>d.key===colField)?.label||colField} →</th>`;
+  colVals.forEach(cv => html += `<th>${cv}</th>`);
+  html += `<th>Total</th></tr></thead><tbody>`;
+
+  rowVals.forEach(rv => {
+    html += `<tr><td>${rv}</td>`;
+    colVals.forEach(cv => {
+      let v = matrix[rv][cv];
+      let display = v;
+      if (metric === 'row_pct') { v = rowTotals[rv]?v/rowTotals[rv]*100:0; display = v.toFixed(1)+'%'; }
+      else if (metric === 'col_pct') { v = colTotals[cv]?v/colTotals[cv]*100:0; display = v.toFixed(1)+'%'; }
+
+      let cls = '';
+      if (heatmap && v > 0) {
+        const ratio = v / maxVal;
+        if (ratio > 0.7) cls = 'xtab-heat-high';
+        else if (ratio > 0.4) cls = 'xtab-heat-mid';
+        else if (ratio > 0.15) cls = 'xtab-heat-low';
+      }
+      html += `<td class="${cls}">${display}</td>`;
+    });
+    html += `<td style="font-weight:600;">${rowTotals[rv]}</td></tr>`;
+  });
+
+  html += `<tr style="font-weight:600;"><td>Total</td>`;
+  colVals.forEach(cv => html += `<td>${colTotals[cv]||0}</td>`);
+  html += `<td>${grand}</td></tr></tbody></table>`;
+
+  container.innerHTML = html;
+}
+
+// ========================================
+// EXPLORER (Chart Factory)
+// ========================================
+function setExChartType(type, btn) {
+  exChartType = type;
+  document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function renderExplorer() {
+  const dim = document.getElementById('ex-dim').value;
+  const multiFields = ['team_focus','ai_helps_with','modeling_pain_points'];
+  const data = multiFields.includes(dim) ? countMultiField(filtered, dim) : countField(filtered, dim);
+
+  // Limit to top 15 for readability
+  const entries = Object.entries(data).slice(0,15);
+  const labels = entries.map(e=>e[0]);
+  const values = entries.map(e=>e[1]);
+
+  const type = exChartType === 'horizontalBar' ? 'bar' : exChartType;
+  const isHorizontal = exChartType === 'horizontalBar';
+  const isPieish = ['pie','doughnut','polarArea'].includes(type);
+
+  makeChart('c-explorer', type, {
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: isPieish ? COLORS.slice(0, labels.length) : 'rgba(0,232,162,0.7)',
+        borderColor: isPieish ? '#10131a' : 'rgba(0,232,162,1)',
+        borderWidth: isPieish ? 2 : 0,
+        borderRadius: isPieish ? 0 : 4
+      }]
+    },
+    options: {
+      responsive: true,
+      indexAxis: isHorizontal ? 'y' : 'x',
+      plugins: {
+        legend: {display: isPieish, position:'right', labels:{boxWidth:10, font:{size:10}, padding:8, color:'#9aa5b8'}},
+        tooltip: {backgroundColor:'#181d28', borderColor:'#252d3d', borderWidth:1, padding:10}
+      },
+      scales: isPieish ? {} : {
+        x: {grid:{color: isHorizontal ? 'rgba(255,255,255,0.03)' : false}, ticks:{maxRotation:45}},
+        y: {grid:{color: isHorizontal ? false : 'rgba(255,255,255,0.03)'}, beginAtZero:true}
+      }
+    }
+  });
+
+  // Also render a table underneath
+  const total = values.reduce((a,b)=>a+b, 0);
+  let tbl = '<table class="data-table"><thead><tr><th>Value</th><th>Count</th><th>%</th></tr></thead><tbody>';
+  entries.forEach(([l,v]) => { tbl += `<tr><td>${l}</td><td>${v}</td><td>${(v/total*100).toFixed(1)}%</td></tr>`; });
+  tbl += '</tbody></table>';
+  document.getElementById('ex-table-container').innerHTML = tbl;
+}
+
+// ========================================
+// DATA BROWSER
+// ========================================
+let sortCol = null, sortDir = 1;
+
+function renderDataBrowser() {
+  const container = document.getElementById('data-browser');
+  const cols = ['role','org_size','industry','region','ai_usage_frequency','ai_adoption','storage_environment','orchestration','modeling_approach','biggest_bottleneck','team_growth_2026','education_topic'];
+
+  let data = [...filtered];
+  if (sortCol) {
+    data.sort((a,b) => {
+      const av = (a[sortCol]||'').toLowerCase(), bv = (b[sortCol]||'').toLowerCase();
+      return av < bv ? -sortDir : av > bv ? sortDir : 0;
+    });
+  }
+
+  // Limit display for performance
+  const show = data.slice(0, 200);
+
+  let html = '<table><thead><tr>';
+  cols.forEach(c => {
+    const arrow = sortCol===c ? (sortDir===1?' ▲':' ▼') : '';
+    html += `<th onclick="sortData('${c}')">${c.replace(/_/g,' ')}${arrow}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+  show.forEach(r => {
+    html += '<tr>';
+    cols.forEach(c => html += `<td title="${(r[c]||'').replace(/"/g,'&quot;')}">${r[c]||''}</td>`);
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+  document.getElementById('data-count-info').textContent = `${filtered.length} rows total${filtered.length>200?' (showing first 200)':''}`;
+}
+
+function sortData(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = 1; }
+  renderDataBrowser();
+}
+
+// ========================================
+// TAB SWITCHING
+// ========================================
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ========================================
+// INIT
+// ========================================
+loadData();
+</script>
 </body>
 </html>
-```

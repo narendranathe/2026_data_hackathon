@@ -716,7 +716,7 @@ function renderEx(){
   const type=exType==='hbar'?'bar':exType;const isH=exType==='hbar';const isPie=['pie','doughnut'].includes(type);
   mkChart('c-ex',type,{
     data:{labels,datasets:[{data:vals,backgroundColor:isPie?PAL.slice(0,labels.length):'rgba(15,123,95,0.7)',borderColor:isPie?'#fff':'rgba(15,123,95,1)',borderWidth:isPie?2:0,borderRadius:isPie?0:4}]},
-    options:{responsive:true,indexAxis:isH?'y':'x',animation:{duration:800,easing:'easeOutQuart'},plugins:{legend:{display:isPie,position:'right',labels:{boxWidth:10,font:{size:10},padding:8}},tooltip:{padding:10}},
+    options:{responsive:true,indexAxis:isH?'y':'x',animation:{duration:800,easing:'easeOutQuart'},plugins:{legend:{display:isPie,position:'right',labels:{boxWidth:12,font:{size:13},padding:12}},tooltip:{padding:10}},
       scales:isPie?{}:{x:{grid:{color:isH?'#eae5de':false},ticks:{maxRotation:45}},y:{grid:{color:isH?false:'#eae5de'},beginAtZero:true}}
     }
   });

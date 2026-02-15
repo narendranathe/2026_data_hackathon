@@ -3,1315 +3,758 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hidden Patterns in Data Engineering — 2026 Survey Deep Analysis</title>
+<title>What 1,101 Data Engineers Are Actually Telling Us — 2026 Survey</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,700;1,6..72,400&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
-  :root {
-    --bg-primary: #0a0e1a;
-    --bg-secondary: #111827;
-    --bg-card: #1a2035;
-    --bg-card-hover: #1e2642;
-    --border: #2a3450;
-    --text-primary: #f0f4ff;
-    --text-secondary: #8b97b8;
-    --text-muted: #5a6785;
-    --accent-blue: #3b82f6;
-    --accent-cyan: #06b6d4;
-    --accent-purple: #8b5cf6;
-    --accent-pink: #ec4899;
-    --accent-green: #10b981;
-    --accent-orange: #f59e0b;
-    --accent-red: #ef4444;
-    --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --gradient-insight: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    --gradient-blue: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --gradient-green: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    --gradient-warm: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    --shadow-lg: 0 10px 40px rgba(0,0,0,0.4);
-    --shadow-glow-blue: 0 0 30px rgba(59,130,246,0.15);
-    --shadow-glow-purple: 0 0 30px rgba(139,92,246,0.15);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    line-height: 1.6;
-    overflow-x: hidden;
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: var(--bg-primary); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--accent-blue); }
-
-  /* Hero */
-  .hero {
-    position: relative;
-    padding: 60px 40px 40px;
-    background: linear-gradient(180deg, rgba(59,130,246,0.08) 0%, transparent 100%);
-    border-bottom: 1px solid var(--border);
-    overflow: hidden;
-  }
-
-  .hero::before {
-    content: '';
-    position: absolute;
-    top: -200px; right: -200px;
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(59,130,246,0.1);
-    border: 1px solid rgba(59,130,246,0.2);
-    color: var(--accent-blue);
-    font-size: 12px;
-    font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 100px;
-    margin-bottom: 20px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-
-  .hero h1 {
-    font-size: clamp(28px, 4vw, 48px);
-    font-weight: 800;
-    letter-spacing: -1px;
-    line-height: 1.1;
-    margin-bottom: 12px;
-    background: linear-gradient(135deg, #f0f4ff 0%, #8b97b8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .hero h1 em {
-    font-style: normal;
-    background: var(--gradient-hero);
-    -webkit-background-clip: text;
-    background-clip: text;
-  }
-
-  .hero-subtitle {
-    font-size: 17px;
-    color: var(--text-secondary);
-    max-width: 700px;
-    margin-bottom: 24px;
-    line-height: 1.7;
-  }
-
-  .hero-meta {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-    font-size: 13px;
-    color: var(--text-muted);
-  }
-
-  .hero-meta span {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  /* Navigation */
-  .nav-bar {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(10,14,26,0.85);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
-    padding: 0 40px;
-    display: flex;
-    gap: 4px;
-    overflow-x: auto;
-  }
-
-  .nav-btn {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 14px 18px;
-    cursor: pointer;
-    white-space: nowrap;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-  }
-
-  .nav-btn:hover { color: var(--text-primary); }
-  .nav-btn.active {
-    color: var(--accent-blue);
-    border-bottom-color: var(--accent-blue);
-  }
-
-  /* Sections */
-  .section {
-    display: none;
-    padding: 32px 40px;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-
-  .section.active { display: block; }
-
-  .section-title {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    letter-spacing: -0.5px;
-  }
-
-  .section-desc {
-    color: var(--text-secondary);
-    font-size: 14px;
-    margin-bottom: 28px;
-    max-width: 700px;
-  }
-
-  /* Insight Cards */
-  .insight-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 20px;
-    margin-bottom: 32px;
-  }
-
-  .insight-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .insight-card:hover {
-    border-color: rgba(59,130,246,0.3);
-    box-shadow: var(--shadow-glow-blue);
-    transform: translateY(-2px);
-  }
-
-  .insight-card.highlight {
-    border-color: rgba(139,92,246,0.3);
-    box-shadow: var(--shadow-glow-purple);
-  }
-
-  .insight-card.highlight::before {
-    content: '★ KEY FINDING';
-    position: absolute;
-    top: 12px; right: 12px;
-    background: var(--gradient-hero);
-    color: white;
-    font-size: 9px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 4px;
-    letter-spacing: 0.5px;
-  }
-
-  .insight-number {
-    font-size: 42px;
-    font-weight: 800;
-    letter-spacing: -2px;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .insight-number.blue { color: var(--accent-blue); }
-  .insight-number.green { color: var(--accent-green); }
-  .insight-number.purple { color: var(--accent-purple); }
-  .insight-number.pink { color: var(--accent-pink); }
-  .insight-number.orange { color: var(--accent-orange); }
-  .insight-number.red { color: var(--accent-red); }
-  .insight-number.cyan { color: var(--accent-cyan); }
-
-  .insight-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 6px;
-  }
-
-  .insight-detail {
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.6;
-  }
-
-  /* Chart containers */
-  .chart-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-    gap: 20px;
-    margin-bottom: 28px;
-  }
-
-  .chart-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-    position: relative;
-  }
-
-  .chart-card.full { grid-column: 1 / -1; }
-
-  .chart-card h3 {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .chart-card .chart-subtitle {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-bottom: 16px;
-  }
-
-  .chart-card canvas {
-    max-height: 400px;
-  }
-
-  .chart-card .chart-insight {
-    margin-top: 14px;
-    padding: 12px 16px;
-    background: rgba(59,130,246,0.06);
-    border-left: 3px solid var(--accent-blue);
-    border-radius: 0 8px 8px 0;
-    font-size: 12px;
-    color: var(--text-secondary);
-    line-height: 1.7;
-  }
-
-  .chart-card .chart-insight strong {
-    color: var(--accent-blue);
-  }
-
-  .chart-card .chart-insight.purple-insight {
-    background: rgba(139,92,246,0.06);
-    border-left-color: var(--accent-purple);
-  }
-  .chart-card .chart-insight.purple-insight strong {
-    color: var(--accent-purple);
-  }
-
-  .chart-card .chart-insight.green-insight {
-    background: rgba(16,185,129,0.06);
-    border-left-color: var(--accent-green);
-  }
-  .chart-card .chart-insight.green-insight strong {
-    color: var(--accent-green);
-  }
-
-  .chart-card .chart-insight.red-insight {
-    background: rgba(239,68,68,0.06);
-    border-left-color: var(--accent-red);
-  }
-  .chart-card .chart-insight.red-insight strong {
-    color: var(--accent-red);
-  }
-
-  /* Heatmap Table */
-  .heatmap-container {
-    overflow-x: auto;
-    margin: 16px 0;
-  }
-
-  .heatmap-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 2px;
-    font-size: 11px;
-  }
-
-  .heatmap-table th {
-    background: var(--bg-secondary);
-    color: var(--text-secondary);
-    font-weight: 600;
-    padding: 8px 10px;
-    text-align: center;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-  }
-
-  .heatmap-table th:first-child {
-    text-align: left;
-    min-width: 140px;
-  }
-
-  .heatmap-table td {
-    padding: 8px 10px;
-    text-align: center;
-    font-weight: 500;
-    border-radius: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    transition: transform 0.2s;
-  }
-
-  .heatmap-table td:first-child {
-    text-align: left;
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    color: var(--text-primary);
-    background: var(--bg-secondary) !important;
-  }
-
-  .heatmap-table td:hover {
-    transform: scale(1.1);
-    z-index: 1;
-    position: relative;
-  }
-
-  .heatmap-table tr:hover td:first-child {
-    color: var(--accent-blue);
-  }
-
-  /* Callout Box */
-  .callout {
-    background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(59,130,246,0.08));
-    border: 1px solid rgba(139,92,246,0.2);
-    border-radius: 12px;
-    padding: 24px 28px;
-    margin: 24px 0;
-  }
-
-  .callout h3 {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .callout p {
-    font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.8;
-  }
-
-  /* Word cloud / tag list */
-  .tag-cloud {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin: 16px 0;
-  }
-
-  .tag {
-    padding: 6px 14px;
-    border-radius: 100px;
-    font-size: 12px;
-    font-weight: 500;
-    border: 1px solid var(--border);
-    background: var(--bg-secondary);
-    color: var(--text-secondary);
-    transition: all 0.2s;
-  }
-
-  .tag.large {
-    font-size: 16px;
-    font-weight: 700;
-    padding: 10px 20px;
-    color: var(--text-primary);
-    border-color: var(--accent-blue);
-    background: rgba(59,130,246,0.1);
-  }
-
-  .tag.medium {
-    font-size: 14px;
-    font-weight: 600;
-    padding: 8px 16px;
-    color: var(--text-primary);
-  }
-
-  /* Methodology */
-  .method-box {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    margin: 16px 0;
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.8;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .method-box code {
-    background: rgba(59,130,246,0.1);
-    color: var(--accent-blue);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 11px;
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .hero, .section, .nav-bar { padding-left: 20px; padding-right: 20px; }
-    .chart-row { grid-template-columns: 1fr; }
-    .insight-grid { grid-template-columns: 1fr; }
-    .hero h1 { font-size: 28px; }
-  }
-
-  /* Filter bar */
-  .filter-bar {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .filter-bar label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .filter-bar select {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    font-family: inherit;
-    font-size: 13px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    min-width: 180px;
-  }
-
-  .filter-bar select:focus {
-    outline: none;
-    border-color: var(--accent-blue);
-  }
-
-  /* Comparison bars */
-  .comparison-bars {
-    margin: 16px 0;
-  }
-
-  .comparison-row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-    gap: 12px;
-  }
-
-  .comparison-label {
-    width: 180px;
-    min-width: 180px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    text-align: right;
-  }
-
-  .comparison-bar-track {
-    flex: 1;
-    height: 28px;
-    background: var(--bg-secondary);
-    border-radius: 6px;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .comparison-bar-fill {
-    height: 100%;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    padding: 0 10px;
-    font-size: 11px;
-    font-weight: 600;
-    color: white;
-    transition: width 0.8s ease;
-    min-width: 40px;
-  }
-
-  .comparison-bar-fill.blue { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-  .comparison-bar-fill.purple { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
-  .comparison-bar-fill.green { background: linear-gradient(90deg, #10b981, #34d399); }
-  .comparison-bar-fill.pink { background: linear-gradient(90deg, #ec4899, #f472b6); }
-  .comparison-bar-fill.orange { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-  .comparison-bar-fill.cyan { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
-  .comparison-bar-fill.red { background: linear-gradient(90deg, #ef4444, #f87171); }
-
-  /* Loading */
-  #loading {
-    position: fixed;
-    inset: 0;
-    background: var(--bg-primary);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    transition: opacity 0.5s;
-  }
-
-  #loading.hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent-blue);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 16px;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .loading-text {
-    font-size: 14px;
-    color: var(--text-muted);
-  }
-
-  /* Footer */
-  .footer {
-    padding: 40px;
-    border-top: 1px solid var(--border);
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 12px;
-    line-height: 2;
-  }
-
-  .footer a {
-    color: var(--accent-blue);
-    text-decoration: none;
-  }
-
-  .footer a:hover { text-decoration: underline; }
-
-  /* Sankey-like flow */
-  .flow-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 4px;
-    font-size: 11px;
-  }
-
-  .flow-from, .flow-to {
-    font-weight: 600;
-    min-width: 120px;
-  }
-
-  .flow-from { text-align: right; color: var(--accent-purple); }
-  .flow-to { text-align: left; color: var(--accent-cyan); }
-
-  .flow-bar {
-    flex: 1;
-    height: 16px;
-    border-radius: 3px;
-    position: relative;
-  }
-
-  .flow-bar-inner {
-    height: 100%;
-    border-radius: 3px;
-    background: linear-gradient(90deg, rgba(139,92,246,0.4), rgba(6,182,212,0.4));
-  }
-
-  .flow-pct {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--text-muted);
-    min-width: 40px;
-    text-align: right;
-  }
+:root {
+  --ink: #1a1a2e;
+  --ink-soft: #2d2d44;
+  --ink-muted: #6b6b88;
+  --ink-faint: #9898b0;
+  --paper: #faf9f7;
+  --paper-warm: #f4f1ec;
+  --paper-deep: #eae5de;
+  --accent: #0f7b5f;
+  --accent-light: #e8f5f0;
+  --accent-bright: #12a47e;
+  --red: #c0392b;
+  --red-light: #fdf0ee;
+  --amber: #d4850e;
+  --amber-light: #fef8ee;
+  --blue: #2563eb;
+  --blue-light: #eff4ff;
+  --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Outfit', -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Menlo', monospace;
+  --radius: 8px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-sans);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;}
+
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--paper);}
+::-webkit-scrollbar-thumb{background:var(--paper-deep);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--ink-muted);}
+
+/* LAYOUT */
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:256px;background:var(--ink);color:#ccc;position:fixed;top:0;left:0;bottom:0;z-index:100;display:flex;flex-direction:column;transition:transform .3s ease;}
+.main-col{margin-left:256px;flex:1;min-width:0;}
+
+/* SIDEBAR */
+.sb-head{padding:22px 18px 14px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sb-title{font-family:var(--font-serif);font-size:16px;color:#fff;font-weight:700;line-height:1.3;}
+.sb-sub{font-size:11px;color:rgba(255,255,255,.4);font-family:var(--font-mono);margin-top:3px;letter-spacing:.3px;}
+.sb-filters{flex:1;overflow-y:auto;padding:14px 16px;}
+.sb-group{margin-bottom:12px;}
+.sb-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.35);margin-bottom:4px;}
+.sb-select{width:100%;background:rgba(255,255,255,.06);color:#ddd;border:1px solid rgba(255,255,255,.1);padding:7px 10px;border-radius:5px;font-family:var(--font-sans);font-size:12px;cursor:pointer;transition:border-color .2s;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%23888'%3E%3Cpath d='M1 3l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+.sb-select:hover,.sb-select:focus{border-color:var(--accent-bright);outline:none;}
+.sb-actions{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;gap:6px;}
+.sb-btn{flex:1;padding:8px;border:none;border-radius:5px;font-family:var(--font-mono);font-size:11px;cursor:pointer;transition:all .15s;}
+.sb-btn-apply{background:var(--accent-bright);color:#fff;}
+.sb-btn-apply:hover{background:var(--accent);}
+.sb-btn-reset{background:transparent;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);}
+.sb-btn-reset:hover{border-color:var(--red);color:var(--red);}
+.sb-count{text-align:center;padding:10px;font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.3);border-top:1px solid rgba(255,255,255,.06);}
+.sb-count b{color:var(--accent-bright);font-size:13px;}
+
+/* TABS */
+.tab-strip{background:#fff;border-bottom:1px solid #e5e2dc;padding:0 28px;display:flex;position:sticky;top:0;z-index:50;box-shadow:var(--shadow-sm);}
+.tab{padding:14px 18px;background:none;border:none;color:var(--ink-muted);font-family:var(--font-sans);font-size:13px;font-weight:500;cursor:pointer;position:relative;transition:color .2s;}
+.tab:hover{color:var(--ink);}
+.tab.on{color:var(--accent);}
+.tab.on::after{content:'';position:absolute;bottom:0;left:10px;right:10px;height:2px;background:var(--accent);border-radius:1px 1px 0 0;}
+.pane{display:none;}.pane.on{display:block;}
+
+/* HERO */
+.hero{max-width:960px;margin:0 auto;padding:48px 32px 36px;}
+.hero-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;opacity:0;animation:fadeUp .6s ease .1s forwards;}
+.hero h1{font-family:var(--font-serif);font-size:clamp(28px,4vw,42px);font-weight:700;line-height:1.2;color:var(--ink);margin-bottom:14px;opacity:0;animation:fadeUp .7s ease .2s forwards;}
+.hero-lead{font-size:17px;color:var(--ink-muted);max-width:640px;font-weight:300;line-height:1.7;opacity:0;animation:fadeUp .7s ease .35s forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* FINDINGS BOX */
+.findings-box{max-width:960px;margin:0 auto 20px;padding:0 32px;}
+.findings-card{background:#fff;border:1px solid #e5e2dc;border-radius:var(--radius);padding:28px 32px;box-shadow:var(--shadow-sm);}
+.findings-title{font-family:var(--font-serif);font-size:20px;font-weight:700;margin-bottom:6px;color:var(--ink);}
+.findings-subtitle{font-size:13px;color:var(--ink-faint);margin-bottom:20px;}
+.finding{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid #f0ede8;opacity:0;transform:translateY(10px);transition:all .5s ease;}
+.finding.visible{opacity:1;transform:translateY(0);}
+.finding:last-child{border-bottom:none;padding-bottom:0;}
+.finding-num{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--accent);min-width:24px;padding-top:2px;}
+.finding-body{}
+.finding-headline{font-family:var(--font-serif);font-size:16px;font-weight:700;line-height:1.35;margin-bottom:3px;}
+.finding-detail{font-size:13px;color:var(--ink-muted);line-height:1.55;}
+.finding-detail em{font-style:normal;color:var(--accent);font-weight:500;}
+.finding .tag{display:inline-block;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:1px;padding:2px 6px;border-radius:3px;margin-left:8px;vertical-align:middle;font-weight:600;}
+.tag-red{background:var(--red-light);color:var(--red);}
+.tag-green{background:var(--accent-light);color:var(--accent);}
+.tag-amber{background:var(--amber-light);color:var(--amber);}
+
+/* CONTENT SECTIONS */
+.content{max-width:1100px;margin:0 auto;padding:0 28px 40px;}
+.sec-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px;}
+.sec-title{font-family:var(--font-serif);font-size:22px;font-weight:700;margin-bottom:20px;}
+.sec-divider{height:1px;background:linear-gradient(to right,#e0dbd4,transparent);margin:36px 0 28px;}
+
+/* DONUT ROW */
+.donut-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:32px;}
+.donut-card{background:#fff;border:1px solid #e5e2dc;border-radius:var(--radius);padding:18px 14px;text-align:center;box-shadow:var(--shadow-sm);transition:transform .2s,box-shadow .2s;cursor:default;opacity:0;transform:translateY(14px);animation:fadeUp .5s ease forwards;}
+.donut-card:nth-child(1){animation-delay:.1s}.donut-card:nth-child(2){animation-delay:.18s}.donut-card:nth-child(3){animation-delay:.26s}.donut-card:nth-child(4){animation-delay:.34s}.donut-card:nth-child(5){animation-delay:.42s}
+.donut-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.donut-wrap{width:120px;height:120px;margin:0 auto 10px;position:relative;}
+.donut-wrap canvas{width:120px!important;height:120px!important;}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:var(--font-mono);font-size:20px;font-weight:600;color:var(--ink);}
+.donut-label{font-size:13px;font-weight:500;color:var(--ink-soft);line-height:1.35;}
+.donut-sub{font-size:11px;color:var(--ink-faint);margin-top:2px;}
+
+/* CARD GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px;margin-bottom:24px;}
+.card{background:#fff;border:1px solid #e5e2dc;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow-sm);transition:all .4s cubic-bezier(.22,1,.36,1);opacity:0;transform:translateY(20px);}
+.card.vis{opacity:1;transform:translateY(0);}
+.card:hover{box-shadow:var(--shadow-md);}
+.card.w2{grid-column:span 2;}
+.card.full{grid-column:1/-1;}
+.card-hdr{margin-bottom:14px;}
+.card-label{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--ink-faint);margin-bottom:4px;}
+.card-h{font-family:var(--font-serif);font-size:17px;font-weight:700;line-height:1.3;}
+.card-sub{font-size:13px;color:var(--ink-muted);margin-top:3px;}
+.card-chart canvas{max-height:250px;}
+.card-note{margin-top:14px;padding:12px 14px;background:var(--paper-warm);border-left:3px solid var(--accent);border-radius:0 var(--radius) var(--radius) 0;font-size:12px;line-height:1.6;color:var(--ink-muted);}
+.card-note b{color:var(--accent);}
+
+/* HEATMAP */
+.heatmap-wrap{overflow-x:auto;margin:0 -4px;}
+.heatmap{border-collapse:collapse;width:100%;font-size:12px;}
+.heatmap th{padding:8px 10px;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-faint);font-weight:600;border-bottom:1px solid #e5e2dc;text-align:center;white-space:nowrap;}
+.heatmap th:first-child{text-align:left;}
+.heatmap td{padding:8px 10px;text-align:center;font-family:var(--font-mono);font-size:12px;border-bottom:1px solid #f0ede8;transition:all .15s;}
+.heatmap td:first-child{text-align:left;font-family:var(--font-sans);font-weight:500;color:var(--ink-soft);}
+.heatmap tr:hover td{background:rgba(15,123,95,.03);}
+.heat-cell{border-radius:4px;display:inline-block;min-width:36px;padding:3px 6px;}
+
+/* HORIZONTAL BARS */
+.hbar{margin:2px 0;}
+.hrow{display:flex;align-items:center;gap:8px;height:30px;}
+.hrow-label{min-width:140px;text-align:right;font-size:12px;color:var(--ink-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hrow-track{flex:1;height:22px;background:var(--paper-deep);border-radius:4px;overflow:hidden;position:relative;}
+.hrow-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.22,1,.36,1);width:0;}
+.hrow-fill.go{/* width set by JS */}
+.hrow-val{font-family:var(--font-mono);font-size:11px;min-width:50px;color:var(--ink-faint);font-weight:500;}
+.hrow-tooltip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:4px 8px;border-radius:4px;font-size:10px;font-family:var(--font-mono);white-space:nowrap;z-index:10;pointer-events:none;}
+.hrow-track:hover .hrow-tooltip{display:block;}
+
+/* COMPARISON TABLE */
+.cmp{width:100%;border-collapse:collapse;font-size:13px;}
+.cmp th{text-align:left;padding:8px 12px;border-bottom:2px solid #e5e2dc;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-faint);font-weight:600;}
+.cmp td{padding:8px 12px;border-bottom:1px solid #f0ede8;}
+.cmp tr:last-child td{border-bottom:none;}
+.cmp tr:hover td{background:rgba(15,123,95,.02);}
+.good{color:var(--accent);font-weight:600;font-family:var(--font-mono);}
+.bad{color:var(--red);font-weight:600;font-family:var(--font-mono);}
+.warn{color:var(--amber);font-weight:600;font-family:var(--font-mono);}
+
+/* CROSS-TAB */
+.xt-bar{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;padding:20px 28px;background:#fff;border-bottom:1px solid #e5e2dc;}
+.xt-field label{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--ink-faint);margin-bottom:3px;}
+.xt-field select{background:#fff;color:var(--ink);border:1px solid #d5d0c8;padding:8px 28px 8px 10px;border-radius:5px;font-family:var(--font-sans);font-size:12px;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%23999'%3E%3Cpath d='M1 3l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+.xt-field select:focus{outline:none;border-color:var(--accent);}
+.xt-radio{display:flex;gap:12px;}
+.xt-radio label{font-size:12px;color:var(--ink-muted);cursor:pointer;display:flex;align-items:center;gap:3px;}
+.xt-radio input{accent-color:var(--accent);}
+.xt-btn{padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:5px;font-family:var(--font-mono);font-size:11px;cursor:pointer;transition:background .15s;}
+.xt-btn:hover{background:var(--accent-bright);}
+.xt-out{padding:20px 28px;overflow-x:auto;}
+.xt-tbl{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--font-mono);}
+.xt-tbl th{padding:7px 8px;background:var(--paper-warm);border:1px solid #e5e2dc;font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-faint);font-weight:600;white-space:nowrap;position:sticky;top:0;}
+.xt-tbl td{padding:5px 8px;border:1px solid #eee;text-align:right;transition:background .15s;}
+.xt-tbl td:first-child{text-align:left;font-weight:500;color:var(--ink);background:var(--paper);position:sticky;left:0;}
+.xt-hi{background:#e0f2eb!important;color:var(--accent);font-weight:600;}
+.xt-mid{background:#fef8ee!important;color:var(--amber);}
+.xt-empty{text-align:center;padding:60px;color:var(--ink-faint);font-size:14px;line-height:2;}
+
+/* EXPLORER */
+.ex-bar{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;padding:20px 28px;background:#fff;border-bottom:1px solid #e5e2dc;}
+.ex-types{display:flex;gap:3px;}
+.ex-type{padding:6px 12px;border:1px solid #d5d0c8;background:#fff;color:var(--ink-muted);border-radius:5px;font-size:11px;cursor:pointer;font-family:var(--font-mono);transition:all .15s;}
+.ex-type.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.ex-chart{padding:28px;max-width:900px;margin:0 auto;}
+.ex-chart canvas{max-height:400px;}
+.ex-tbl-wrap{padding:0 28px 28px;max-width:700px;margin:0 auto;}
+
+/* DATA BROWSER */
+.data-wrap{padding:16px 28px;overflow:auto;max-height:calc(100vh - 120px);}
+.data-wrap table{width:100%;border-collapse:collapse;font-size:11px;}
+.data-wrap th{position:sticky;top:0;background:var(--paper-warm);padding:7px 8px;border:1px solid #e5e2dc;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-faint);white-space:nowrap;cursor:pointer;transition:color .15s;}
+.data-wrap th:hover{color:var(--accent);}
+.data-wrap td{padding:4px 8px;border:1px solid #f0ede8;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;}
+.data-wrap tr:nth-child(even) td{background:var(--paper-warm);}
+.data-wrap tr:hover td{background:var(--accent-light);}
+.data-info{padding:10px 28px 4px;font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);}
+
+/* FOOTER */
+.foot{max-width:1100px;margin:0 auto;padding:20px 28px;border-top:1px solid #e5e2dc;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--ink-faint);}
+.foot a{color:var(--accent);text-decoration:none;}.foot a:hover{text-decoration:underline;}
+
+/* MOBILE */
+.mob-btn{display:none;position:fixed;top:12px;left:12px;z-index:200;background:var(--ink);color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:16px;cursor:pointer;box-shadow:var(--shadow-md);}
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);}.sidebar.open{transform:translateX(0);}
+  .main-col{margin-left:0;}.mob-btn{display:block;}
+  .card.w2,.card.full{grid-column:span 1;}
+  .grid{grid-template-columns:1fr;}
+  .donut-row{grid-template-columns:repeat(2,1fr);}
+  .hero{padding:28px 20px 24px;}.content{padding:0 16px 32px;}
+  .findings-box{padding:0 16px;}
+}
+@media(max-width:500px){.donut-row{grid-template-columns:1fr;}}
+
+/* LOADING */
+#loader{position:fixed;inset:0;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s;}
+#loader.out{opacity:0;pointer-events:none;}
+.ld-bar{width:200px;height:3px;background:var(--paper-deep);border-radius:2px;overflow:hidden;margin-top:16px;}
+.ld-fill{height:100%;background:var(--accent);border-radius:2px;animation:ldanim 1.5s ease infinite;}
+@keyframes ldanim{0%{width:0;margin-left:0}50%{width:70%}100%{width:0;margin-left:100%}}
+#loader p{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);margin-top:12px;}
 </style>
 </head>
 <body>
 
-<div id="loading">
-  <div class="loading-spinner"></div>
-  <div class="loading-text">Analyzing 1,101 survey responses...</div>
-</div>
+<div id="loader"><div class="ld-bar"><div class="ld-fill"></div></div><p>Loading 1,101 survey responses...</p></div>
+<button class="mob-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">&#9776;</button>
 
-<!-- Hero -->
-<div class="hero">
-  <div class="hero-badge">🔬 #PracticalDataSurvey — Novel Analysis</div>
-  <h1>The Hidden Patterns in<br>Data Engineering <em>2026</em></h1>
-  <p class="hero-subtitle">
-    Cross-dimensional analysis of the 2026 State of Data Engineering Survey revealing
-    correlations between AI adoption, orchestration maturity, modeling pain, and team outcomes
-    that weren't visible in single-variable breakdowns.
-  </p>
-  <div class="hero-meta">
-    <span>📊 1,101 responses analyzed</span>
-    <span>🔗 18 dimensions cross-tabulated</span>
-    <span>💡 7 novel insights surfaced</span>
-    <span>👤 By <a href="https://github.com/narendranath-edara" style="color:var(--accent-blue);text-decoration:none">Narendranath Edara</a></span>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <div class="sb-head">
+    <div class="sb-title">Survey Filters</div>
+    <div class="sb-sub">Slice the data, all charts update</div>
   </div>
-</div>
+  <div class="sb-filters">
+    <div class="sb-group"><div class="sb-label">Region</div><select id="f-region" class="sb-select" onchange="apply()"><option value="all">All Regions</option></select></div>
+    <div class="sb-group"><div class="sb-label">Industry</div><select id="f-industry" class="sb-select" onchange="apply()"><option value="all">All Industries</option></select></div>
+    <div class="sb-group"><div class="sb-label">Org Size</div><select id="f-orgsize" class="sb-select" onchange="apply()"><option value="all">All Sizes</option></select></div>
+    <div class="sb-group"><div class="sb-label">Role</div><select id="f-role" class="sb-select" onchange="apply()"><option value="all">All Roles</option></select></div>
+    <div class="sb-group"><div class="sb-label">AI Adoption</div><select id="f-ai" class="sb-select" onchange="apply()"><option value="all">All Levels</option></select></div>
+    <div class="sb-group"><div class="sb-label">Team Growth</div><select id="f-growth" class="sb-select" onchange="apply()"><option value="all">All</option></select></div>
+  </div>
+  <div class="sb-actions">
+    <button class="sb-btn sb-btn-apply" onclick="apply()">Apply</button>
+    <button class="sb-btn sb-btn-reset" onclick="reset()">Reset</button>
+  </div>
+  <div class="sb-count">Showing <b id="fc">0</b> of <b id="ft">0</b></div>
+</aside>
 
-<!-- Navigation -->
-<div class="nav-bar">
-  <button class="nav-btn active" onclick="showSection('overview')">🏠 Key Findings</button>
-  <button class="nav-btn" onclick="showSection('ai-paradox')">🤖 The AI Paradox</button>
-  <button class="nav-btn" onclick="showSection('orchestration')">🔧 Orchestration Gap</button>
-  <button class="nav-btn" onclick="showSection('modeling-pain')">📐 Modeling × Pain</button>
-  <button class="nav-btn" onclick="showSection('regional')">🌍 Regional Divergence</button>
-  <button class="nav-btn" onclick="showSection('growth')">📈 Growth Predictors</button>
-  <button class="nav-btn" onclick="showSection('voices')">💬 Unheard Voices</button>
-  <button class="nav-btn" onclick="showSection('methodology')">🔬 Methodology</button>
-</div>
-
-<!-- SECTION: Overview -->
-<div class="section active" id="sec-overview">
-  <h2 class="section-title">Seven findings the original report didn't surface</h2>
-  <p class="section-desc">
-    By cross-tabulating dimensions that were only shown independently in the published report,
-    we found structural patterns that change the story.
-  </p>
-
-  <div class="insight-grid" id="kpi-grid">
-    <!-- Filled by JS -->
+<div class="main-col">
+  <div class="tab-strip">
+    <button class="tab on" onclick="switchTab('insights',this)">Key Insights</button>
+    <button class="tab" onclick="switchTab('xtab',this)">Cross-Tab Builder</button>
+    <button class="tab" onclick="switchTab('explore',this)">Chart Explorer</button>
+    <button class="tab" onclick="switchTab('data',this)">Raw Data</button>
   </div>
 
-  <div class="callout">
-    <h3>💡 The Meta-Insight</h3>
-    <p>
-      The survey's single-variable breakdowns hide a <strong>compounding effect</strong>: organizations that lack
-      orchestration, use ad-hoc modeling, AND have low AI adoption are <strong>3.2× more likely</strong> to report
-      "fighting fires" as their top bottleneck — and <strong>2.1× more likely</strong> to expect their teams to shrink.
-      These three factors aren't independent. They're symptoms of the same underlying organizational dysfunction:
-      <strong>treating data engineering as a cost center rather than a product function.</strong>
-    </p>
-  </div>
+  <!-- INSIGHTS PANE -->
+  <div class="pane on" id="p-insights">
+    <div class="hero">
+      <div class="hero-eyebrow">#PracticalDataSurvey Hackathon Analysis</div>
+      <h1>What 1,101 Data Engineers Are Actually Telling Us</h1>
+      <p class="hero-lead">We dug into cross-tabulations the original report didn't run. Regional splits, causal chains, and the real reasons some teams are drowning while others pull ahead. Every chart below recalculates live when you change the filters.</p>
+    </div>
 
-  <div class="chart-row">
-    <div class="chart-card full">
-      <h3>📊 The Compounding Risk Matrix</h3>
-      <div class="chart-subtitle">How combinations of orchestration, modeling, and AI adoption predict team outcomes</div>
-      <canvas id="chart-compound-risk" height="100"></canvas>
-      <div class="chart-insight purple-insight">
-        <strong>Key finding:</strong> Teams with all three maturity markers (orchestration + intentional modeling + AI adoption)
-        have a 71% growth expectation vs. 28% for teams with none. The gap is wider than any single factor alone.
+    <div class="findings-box">
+      <div class="findings-card">
+        <div class="findings-title">What we found that's not in the published report</div>
+        <div class="findings-subtitle">These patterns only emerge when you cross-tabulate dimensions against each other.</div>
+
+        <div class="finding" data-delay="0"><div class="finding-num">01</div><div class="finding-body">
+          <div class="finding-headline">Latin America is more AI-mature than the US or Europe <span class="tag tag-green">Surprising</span></div>
+          <div class="finding-detail">The report said "82% use AI daily." But that global average hides a stark regional gap. Latin America scores <em>2.1 out of 4</em> on AI maturity with only 5.8% reporting no adoption. Europe sits at <em>1.7</em> with the most teams still "experimenting."</div>
+        </div></div>
+
+        <div class="finding" data-delay="80"><div class="finding-num">02</div><div class="finding-body">
+          <div class="finding-headline">More AI adoption actually creates more schema chaos <span class="tag tag-red">Paradox</span></div>
+          <div class="finding-detail">Teams with AI embedded report <em>2.7x more "inconsistent schema" pain</em> than teams still experimenting (7.3% vs 2.7%). AI accelerates everything, including bad data modeling decisions.</div>
+        </div></div>
+
+        <div class="finding" data-delay="160"><div class="finding-num">03</div><div class="finding-body">
+          <div class="finding-headline">There's a quantifiable doom loop: leadership gap, ad-hoc modeling, fire-fighting <span class="tag tag-red">Root Cause</span></div>
+          <div class="finding-detail">38% of ad-hoc modelers are fighting fires. Among teams citing leadership gaps, <em>34.3% are fire-fighting</em>. Teams using semantic models? Only 18.6%. The causal chain is clear.</div>
+        </div></div>
+
+        <div class="finding" data-delay="240"><div class="finding-num">04</div><div class="finding-body">
+          <div class="finding-headline">Every region's biggest problem is different <span class="tag tag-amber">Strategy</span></div>
+          <div class="finding-detail">US/Canada: tech debt (31.2%). Europe: leadership (23.4%). Asia-Pacific: poor requirements (27.7%). Middle East: data quality at <em>2.5x the US rate</em>. A global data strategy that ignores this will fail.</div>
+        </div></div>
+
+        <div class="finding" data-delay="320"><div class="finding-num">05</div><div class="finding-body">
+          <div class="finding-headline">Small companies can't hire. Big companies can't lead. Mid-size companies stall on AI. <span class="tag tag-amber">Org Size</span></div>
+          <div class="finding-detail">Startups cite talent at <em>20.1%</em>, double the mid-size rate. Once past 50 people, the bottleneck flips to leadership and tech debt. And mid-size orgs (200-10K) have the <em>lowest AI maturity</em> of any bracket.</div>
+        </div></div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- SECTION: AI Paradox -->
-<div class="section" id="sec-ai-paradox">
-  <h2 class="section-title">🤖 The AI Adoption Paradox</h2>
-  <p class="section-desc">
-    Higher AI usage doesn't reduce pain — it shifts it. Organizations with the most AI adoption
-    report <em>different</em> bottlenecks, not fewer.
-  </p>
+    <div class="content">
+    <div class="sec-divider"></div>
+    <div class="sec-label">Headline Numbers</div>
+    <div class="sec-title">The numbers that define data engineering right now</div>
+    <div class="donut-row" id="donut-row">
+      <div class="donut-card"><div class="donut-wrap"><canvas id="d1"></canvas><div class="donut-center" id="d1v"></div></div><div class="donut-label">Fighting Fires</div><div class="donut-sub">as their primary daily focus</div></div>
+      <div class="donut-card"><div class="donut-wrap"><canvas id="d2"></canvas><div class="donut-center" id="d2v"></div></div><div class="donut-label">Using AI Daily+</div><div class="donut-sub">daily or multiple times per day</div></div>
+      <div class="donut-card"><div class="donut-wrap"><canvas id="d3"></canvas><div class="donut-center" id="d3v"></div></div><div class="donut-label">No Orchestration</div><div class="donut-sub">running ad-hoc or without tooling</div></div>
+      <div class="donut-card"><div class="donut-wrap"><canvas id="d4"></canvas><div class="donut-center" id="d4v"></div></div><div class="donut-label">Expect Team Growth</div><div class="donut-sub">anticipate headcount increasing</div></div>
+      <div class="donut-card"><div class="donut-wrap"><canvas id="d5"></canvas><div class="donut-center" id="d5v"></div></div><div class="donut-label">Have Modeling Pain</div><div class="donut-sub">report at least one pain point</div></div>
+    </div>
 
-  <div class="chart-row">
-    <div class="chart-card">
-      <h3>AI Usage Frequency × Biggest Bottleneck</h3>
-      <div class="chart-subtitle">What changes when teams use AI daily vs. rarely?</div>
-      <canvas id="chart-ai-bottleneck"></canvas>
-      <div class="chart-insight red-insight">
-        <strong>Paradox:</strong> Daily AI users report "data quality/governance" as their #1 bottleneck at 2.3× the rate of
-        non-AI users, who cite "lack of resources" instead. AI doesn't eliminate bottlenecks — it reveals the ones
-        you could ignore before.
+    <!-- HEATMAP -->
+    <div class="sec-divider"></div>
+    <div class="sec-label">Who responded</div>
+    <div class="sec-title">Respondent distribution: region vs. industry</div>
+    <div class="card full" style="opacity:1;transform:none;">
+      <div class="heatmap-wrap"><table class="heatmap" id="heatmap"></table></div>
+      <div style="font-size:11px;color:var(--ink-faint);margin-top:10px;font-style:italic;">Cell color intensity shows concentration. This recalculates with your sidebar filters applied.</div>
+    </div>
+
+    <!-- AI DIVIDE -->
+    <div class="sec-divider"></div>
+    <div class="sec-label">The AI Divide</div>
+    <div class="sec-title">AI maturity is not distributed evenly, and the gaps are widening</div>
+    <div class="grid">
+      <div class="card w2">
+        <div class="card-hdr"><div class="card-label">Region x AI Adoption</div><div class="card-h">Regional AI maturity breakdown</div><div class="card-sub">Percentage of respondents at each adoption level, by region</div></div>
+        <div class="card-chart"><canvas id="c-region-ai"></canvas></div>
+        <div class="card-note"><b>Read it this way:</b> Latin America has the highest share of "AI embedded" teams (15.4%) and the lowest "No adoption" (5.8%). Europe has the most teams still stuck in experimenting mode. This gap will likely widen through 2026.</div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-label">Industry x AI Maturity</div><div class="card-h">Average AI maturity by industry</div><div class="card-sub">Scale: 0 (no adoption) to 4 (embedded)</div></div>
+        <div id="b-ind-ai" class="hbar"></div>
+        <div class="card-note"><b>What it means:</b> Tech leads at around 2.1, while Public Sector and Manufacturing sit a full tier behind. The training demand gap from these sectors is immense.</div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-label">AI Adoption x Schema Pain</div><div class="card-h">More adoption, more schema chaos</div><div class="card-sub">% reporting "AI produces inconsistent schemas"</div></div>
+        <div id="b-ai-schema" class="hbar"></div>
+        <div class="card-note"><b>The paradox:</b> Teams furthest along with AI feel the schema pain most acutely. Without modeling discipline, AI just accelerates the mess.</div>
       </div>
     </div>
-    <div class="chart-card">
-      <h3>AI Adoption Level × Modeling Pain Points</h3>
-      <div class="chart-subtitle">Does embedding AI in workflows fix modeling problems?</div>
-      <canvas id="chart-ai-modeling-pain"></canvas>
-      <div class="chart-insight">
-        <strong>Finding:</strong> Organizations with "AI embedded in most workflows" report <em>more</em> modeling pain
-        (72%) than those with "no meaningful adoption" (58%). AI amplifies data modeling issues because
-        AI workflows demand cleaner, more intentional schemas — exposing debt that was always there.
+
+    <!-- FIRE FIGHTING -->
+    <div class="sec-divider"></div>
+    <div class="sec-label">Root Cause Analysis</div>
+    <div class="sec-title">Why some teams can never stop fighting fires</div>
+    <div class="grid">
+      <div class="card w2">
+        <div class="card-hdr"><div class="card-label">The Doom Loop</div><div class="card-h">Fire-fighting rate by organizational factor</div><div class="card-sub">% of each group that includes "fighting fires" in their team focus</div></div>
+        <div id="b-doom" class="hbar"></div>
+        <div class="card-note"><b>The chain:</b> Leadership gaps create ad-hoc practices. Ad-hoc practices prevent orchestration. Without orchestration, everything is a fire. Semantic modeling is the clearest escape route at just 18.6%.</div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-label">Industry x Fire Rate</div><div class="card-h">Which industries burn the most</div><div class="card-sub">% with "fighting fires" in focus</div></div>
+        <div id="b-ind-fire" class="hbar"></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-label">Storage Platform x Fire Rate</div><div class="card-h">On-prem costs more than you think</div><div class="card-sub">Fire-fighting rate by storage platform</div></div>
+        <div id="b-stor-fire" class="hbar"></div>
+        <div class="card-note"><b>Hidden cost:</b> On-prem warehouse teams fight fires at a significantly higher rate than cloud warehouse teams. This doesn't show up in any TCO model.</div>
       </div>
     </div>
-  </div>
 
-  <div class="chart-row">
-    <div class="chart-card full">
-      <h3>The AI Adoption × Org Size Heat Map</h3>
-      <div class="chart-subtitle">Who's actually using AI, and where? (% of respondents in each cell)</div>
-      <div class="heatmap-container" id="heatmap-ai-orgsize"></div>
-      <div class="chart-insight green-insight">
-        <strong>Surprise:</strong> Small companies (< 50 employees) have the highest rate of "AI embedded in most workflows"
-        (18.4%) — nearly double the 10,000+ employee organizations (10.2%). Startups move faster on AI adoption,
-        while enterprises are stuck "experimenting."
+    <!-- REGIONAL -->
+    <div class="sec-divider"></div>
+    <div class="sec-label">Regional Patterns</div>
+    <div class="sec-title">A global data strategy that ignores geography will fail</div>
+    <div class="grid">
+      <div class="card w2">
+        <div class="card-hdr"><div class="card-label">Region x Bottleneck</div><div class="card-h">Every region's top two problems</div></div>
+        <div style="overflow-x:auto;"><table class="cmp" id="t-regbn"><thead><tr><th>Region</th><th>Biggest bottleneck</th><th>Share</th><th>Runner-up</th><th>Share</th></tr></thead><tbody></tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-label">Region x Education Demand</div><div class="card-h">What each region wants to learn</div></div>
+        <div class="card-chart"><canvas id="c-edu"></canvas></div>
+        <div class="card-note">Middle East wants Data Modeling (42.9%). Asia-Pacific is hungry for AI/LLM training (30.9%). US and Australia want Semantics. One curriculum won't fit everyone.</div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-label">Region x Team Growth</div><div class="card-h">Who is shrinking and why it matters</div><div class="card-sub">% of teams expecting to shrink in 2026</div></div>
+        <div id="b-shrink" class="hbar"></div>
+        <div class="card-note">Asia-Pacific teams are shrinking at 2x the US rate. It's driven by leadership gaps, not AI-driven efficiency gains.</div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- SECTION: Orchestration Gap -->
-<div class="section" id="sec-orchestration">
-  <h2 class="section-title">🔧 The Orchestration Maturity Gap</h2>
-  <p class="section-desc">
-    ~20% of respondents have no orchestration. This isn't just a tooling gap — it's a predictor of
-    organizational pain across every other dimension.
-  </p>
-
-  <div class="chart-row">
-    <div class="chart-card">
-      <h3>Orchestration Status × Growth Expectation</h3>
-      <div class="chart-subtitle">Do orchestrated teams grow faster?</div>
-      <canvas id="chart-orch-growth"></canvas>
-      <div class="chart-insight green-insight">
-        <strong>Finding:</strong> Teams with Airflow, Dagster, or cloud-native orchestration expect growth at
-        48% vs. 33% for no-orchestration teams. The orchestration gap isn't just operational — it predicts
-        organizational investment in data.
+    <!-- ORG SIZE -->
+    <div class="sec-divider"></div>
+    <div class="sec-label">Org Size Dynamics</div>
+    <div class="sec-title">Your company size shapes your problems more than your tech stack</div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-hdr"><div class="card-label">Org Size x Bottleneck</div><div class="card-h">Small firms can't hire. Large firms can't lead.</div></div>
+        <div class="card-chart"><canvas id="c-org-bn"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-label">Org Size x AI Maturity</div><div class="card-h">The mid-size AI stall</div><div class="card-sub">Average maturity (0 to 4 scale)</div></div>
+        <div id="b-org-ai" class="hbar"></div>
+        <div class="card-note">Small and large orgs lead AI adoption. Mid-size (200-10K) is stuck: too big to move fast, too small for dedicated AI teams.</div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-label">Shrinking vs Growing Teams</div><div class="card-h">What struggling data teams look like</div><div class="card-sub">Comparing the ~7% expecting to shrink</div></div>
+        <table class="cmp" id="t-shrink"><thead><tr><th>Attribute</th><th>Shrinking</th><th>Growing</th></tr></thead><tbody></tbody></table>
+        <div class="card-note">Shrinking teams have more leadership gaps and less AI maturity. They aren't shrinking because of AI. They're shrinking because they never got organizational buy-in.</div>
       </div>
     </div>
-    <div class="chart-card">
-      <h3>Orchestration × AI Usage Frequency</h3>
-      <div class="chart-subtitle">Is there a correlation between orchestration maturity and AI adoption?</div>
-      <canvas id="chart-orch-ai"></canvas>
-      <div class="chart-insight purple-insight">
-        <strong>Finding:</strong> Teams with mature orchestration are 1.8× more likely to use AI "multiple times per day."
-        Orchestration maturity appears to be a <em>prerequisite</em> for effective AI adoption — not the other way around.
-      </div>
-    </div>
-  </div>
 
-  <div class="chart-row">
-    <div class="chart-card full">
-      <h3>The No-Orchestration Profile — Who Are They?</h3>
-      <div class="chart-subtitle">Org size breakdown of teams running without orchestration</div>
-      <canvas id="chart-no-orch-profile" height="90"></canvas>
-      <div class="chart-insight">
-        <strong>Finding:</strong> No-orchestration teams aren't just small shops. 22% of them are in organizations with
-        1,000–10,000+ employees. This suggests that orchestration gaps in large orgs reflect <em>organizational silos</em>,
-        not team size constraints.
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SECTION: Modeling × Pain -->
-<div class="section" id="sec-modeling-pain">
-  <h2 class="section-title">📐 The Modeling Approach × Pain Connection</h2>
-  <p class="section-desc">
-    Not all modeling approaches produce equal pain. Cross-tabulating modeling methodology against
-    specific pain points reveals which approaches actually protect teams.
-  </p>
-
-  <div class="chart-row">
-    <div class="chart-card full">
-      <h3>Modeling Approach × Pain Points Heatmap</h3>
-      <div class="chart-subtitle">Percentage of respondents in each modeling approach reporting each pain point</div>
-      <div class="heatmap-container" id="heatmap-modeling-pain"></div>
-      <div class="chart-insight red-insight">
-        <strong>Key finding:</strong> "Ad-hoc / tables added as needed" has the highest rate of <em>every single pain point</em>
-        except "AI tools produce inconsistent schemas." Kimball and mixed approaches show the lowest overall pain.
-        One Big Table shows surprisingly high "hard to maintain" pain (confirming the trade-off).
-      </div>
-    </div>
-  </div>
-
-  <div class="chart-row">
-    <div class="chart-card">
-      <h3>Modeling Approach × Biggest Bottleneck</h3>
-      <div class="chart-subtitle">Does your modeling choice predict your biggest organizational bottleneck?</div>
-      <canvas id="chart-model-bottleneck"></canvas>
-      <div class="chart-insight">
-        <strong>Finding:</strong> Ad-hoc modelers are 2.4× more likely to cite "data quality" as their biggest bottleneck
-        vs. Kimball modelers. Intentional modeling approaches don't eliminate bottlenecks, but they shift them
-        from <em>data quality</em> to <em>speed of delivery</em> — a more manageable problem.
-      </div>
-    </div>
-    <div class="chart-card">
-      <h3>Modeling Approach Distribution by Org Size</h3>
-      <div class="chart-subtitle">Do larger organizations model more intentionally?</div>
-      <canvas id="chart-model-orgsize"></canvas>
-      <div class="chart-insight purple-insight">
-        <strong>Finding:</strong> "Mixed" approach dominates across all org sizes, but Kimball adoption increases
-        with org size (from 8% in < 50 to 15% in 10K+). Surprisingly, Data Vault barely registers
-        outside of 1,000+ employee organizations.
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SECTION: Regional -->
-<div class="section" id="sec-regional">
-  <h2 class="section-title">🌍 Regional Technology Divergence</h2>
-  <p class="section-desc">
-    Data engineering isn't one global profession. Region shapes tool choices, AI adoption, and pain points
-    in ways the single-variable report obscures.
-  </p>
-
-  <div class="chart-row">
-    <div class="chart-card">
-      <h3>AI Daily Usage by Region</h3>
-      <div class="chart-subtitle">% using AI "Multiple times per day" or "Daily"</div>
-      <canvas id="chart-region-ai"></canvas>
-    </div>
-    <div class="chart-card">
-      <h3>Growth Expectation by Region</h3>
-      <div class="chart-subtitle">% expecting team growth in 2026</div>
-      <canvas id="chart-region-growth"></canvas>
     </div>
   </div>
 
-  <div class="chart-row">
-    <div class="chart-card full">
-      <h3>Regional Stack Profile — Storage × Region</h3>
-      <div class="chart-subtitle">How storage environments differ by region</div>
-      <canvas id="chart-region-storage" height="100"></canvas>
-      <div class="chart-insight">
-        <strong>Finding:</strong> Asia-Pacific has the highest lakehouse adoption rate (31% vs. 24% global average),
-        while Europe leads in on-prem data warehousing. Latin America and Africa show the highest cloud DWH concentration,
-        suggesting a "leapfrog" effect where newer data teams skip on-prem entirely.
-      </div>
+  <!-- CROSS-TAB PANE -->
+  <div class="pane" id="p-xtab">
+    <div class="xt-bar">
+      <div class="xt-field"><label>Rows</label><select id="xt-r"></select></div>
+      <span style="font-size:18px;color:var(--ink-faint);">&times;</span>
+      <div class="xt-field"><label>Columns</label><select id="xt-c"></select></div>
+      <div class="xt-field"><label>Values</label><div class="xt-radio"><label><input type="radio" name="xtm" value="count" checked> Count</label><label><input type="radio" name="xtm" value="row"> Row %</label><label><input type="radio" name="xtm" value="col"> Col %</label></div></div>
+      <button class="xt-btn" onclick="runXT()">Generate</button>
     </div>
+    <div class="xt-out" id="xt-out"><div class="xt-empty">Pick any two dimensions and click Generate. Sidebar filters apply here too.<br><br>Try: <b>Region x AI Adoption</b>, or <b>Industry x Biggest Bottleneck</b>, or <b>Org Size x Orchestration</b></div></div>
   </div>
 
-  <div class="chart-row">
-    <div class="chart-card full">
-      <h3>Region × Orchestration Heatmap</h3>
-      <div class="chart-subtitle">% using each orchestration category by region</div>
-      <div class="heatmap-container" id="heatmap-region-orch"></div>
-      <div class="chart-insight green-insight">
-        <strong>Finding:</strong> Airflow dominates everywhere, but Dagster adoption is highest in US/Canada (12%)
-        and lowest in Asia-Pacific (5%). Cloud-native orchestration is most popular in Europe. The "no orchestration"
-        rate is highest in the Middle East/Africa region.
-      </div>
+  <!-- EXPLORER PANE -->
+  <div class="pane" id="p-explore">
+    <div class="ex-bar">
+      <div class="xt-field"><label>Dimension</label><select id="ex-dim"></select></div>
+      <div class="xt-field"><label>Chart Type</label><div class="ex-types">
+        <button class="ex-type on" onclick="setExType('bar',this)">Bar</button>
+        <button class="ex-type" onclick="setExType('hbar',this)">H-Bar</button>
+        <button class="ex-type" onclick="setExType('pie',this)">Pie</button>
+        <button class="ex-type" onclick="setExType('doughnut',this)">Donut</button>
+      </div></div>
+      <button class="xt-btn" onclick="renderEx()">Generate</button>
     </div>
+    <div class="ex-chart"><canvas id="c-ex"></canvas></div>
+    <div class="ex-tbl-wrap" id="ex-tbl"></div>
+  </div>
+
+  <!-- DATA PANE -->
+  <div class="pane" id="p-data">
+    <div class="data-info" id="data-info"></div>
+    <div class="data-wrap" id="data-wrap"></div>
+  </div>
+
+  <div class="foot">
+    <span>Analysis of the 2026 Practical Data Community Survey (n=1,101) -- Built for the #PracticalDataSurvey Hackathon</span>
+    <span><a href="https://joereis.github.io/practical_data_data_eng_survey/" target="_blank">Original Survey Explorer</a></span>
   </div>
 </div>
-
-<!-- SECTION: Growth Predictors -->
-<div class="section" id="sec-growth">
-  <h2 class="section-title">📈 What Actually Predicts Team Growth?</h2>
-  <p class="section-desc">
-    Instead of looking at growth expectations in isolation, we cross-tabulated growth against
-    every other dimension to find the strongest predictors.
-  </p>
-
-  <div class="chart-row">
-    <div class="chart-card full">
-      <h3>Growth Rate by Factor — Ranked</h3>
-      <div class="chart-subtitle">% expecting "Grow" within each category (sorted by strength of prediction)</div>
-      <div id="growth-predictor-bars"></div>
-      <div class="chart-insight green-insight">
-        <strong>Key finding:</strong> The single strongest predictor of team growth isn't AI adoption or technology choice —
-        it's <strong>architecture trend</strong>. Teams embracing newer architecture patterns (lakehouse, data mesh)
-        expect growth at 58%, vs. 31% for traditional warehouse-only teams. The second strongest predictor is
-        AI adoption level, followed by orchestration maturity.
-      </div>
-    </div>
-  </div>
-
-  <div class="chart-row">
-    <div class="chart-card">
-      <h3>Growth Expectation × AI Adoption Level</h3>
-      <div class="chart-subtitle">The AI-growth connection is real but nuanced</div>
-      <canvas id="chart-growth-ai"></canvas>
-    </div>
-    <div class="chart-card">
-      <h3>Shrink Expectation: Who Expects to Lose Headcount?</h3>
-      <div class="chart-subtitle">Factors most correlated with expecting team shrinkage</div>
-      <canvas id="chart-shrink-factors"></canvas>
-      <div class="chart-insight red-insight">
-        <strong>Warning signal:</strong> Teams with "no meaningful AI adoption" + "no orchestration" + "ad-hoc modeling"
-        have a 22% shrink expectation — nearly 3× the overall average. These teams may be in a death spiral:
-        lack of investment → inability to adopt modern practices → perceived as low-value → further cuts.
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SECTION: Voices -->
-<div class="section" id="sec-voices">
-  <h2 class="section-title">💬 The Unheard Voices — Open Response Analysis</h2>
-  <p class="section-desc">
-    626 respondents answered "What do you wish the industry understood about data engineering?"
-    We extracted and categorized the dominant themes.
-  </p>
-
-  <div class="insight-grid">
-    <div class="insight-card highlight">
-      <div class="insight-number purple">57%</div>
-      <div class="insight-label">"It Takes Time"</div>
-      <div class="insight-detail">The #1 theme: rushing data work creates technical debt. "Good foundations can't be built in a sprint."</div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-number blue">41%</div>
-      <div class="insight-label">"Business Context Is Essential"</div>
-      <div class="insight-detail">Engineers need domain knowledge, not just tool knowledge. "We're not order takers."</div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-number green">34%</div>
-      <div class="insight-label">"Data Quality Starts Upstream"</div>
-      <div class="insight-detail">"The problems we fix were created by others. Fix the source, not just the pipeline."</div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-number orange">28%</div>
-      <div class="insight-label">"We're Not Just Pipeline Builders"</div>
-      <div class="insight-detail">Respondents resist being reduced to ETL. "It's a discipline, not a task."</div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-number pink">23%</div>
-      <div class="insight-label">"AI Won't Save Bad Foundations"</div>
-      <div class="insight-detail">"Without good data engineering, AI is just expensive hallucination at scale."</div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-number cyan">19%</div>
-      <div class="insight-label">"Data Modeling Matters"</div>
-      <div class="insight-detail">"It's the most undervalued skill. Everyone wants ML but nobody wants to model."</div>
-    </div>
-  </div>
-
-  <div class="chart-row">
-    <div class="chart-card full">
-      <h3>Theme Frequency by Role — Who Says What?</h3>
-      <div class="chart-subtitle">Do managers and ICs agree on what the industry should understand?</div>
-      <canvas id="chart-voice-by-role"></canvas>
-      <div class="chart-insight purple-insight">
-        <strong>Finding:</strong> Managers/Directors emphasize "business context" and "time" equally, while
-        individual contributor Data Engineers disproportionately cite "data quality starts upstream" and
-        "we're not just pipeline builders." This signals a disconnect: leaders see the strategic gap while
-        ICs feel the operational pain of being miscategorized.
-      </div>
-    </div>
-  </div>
-
-  <div class="callout">
-    <h3>🎯 Most Cited Quote Pattern</h3>
-    <p>
-      Across 626 open responses, the single most repeated sentiment (paraphrased from dozens of responses):<br><br>
-      <em>"Data engineering is infrastructure — when it works, it's invisible. When it breaks, everyone notices.
-      We need investment before the break, not after."</em><br><br>
-      This "invisible infrastructure" framing appeared in <strong>47 distinct responses</strong> using
-      variations of "invisible," "plumbing," "foundation," or "infrastructure."
-    </p>
-  </div>
-</div>
-
-<!-- SECTION: Methodology -->
-<div class="section" id="sec-methodology">
-  <h2 class="section-title">🔬 Methodology & Reproducibility</h2>
-  <p class="section-desc">
-    Every finding can be reproduced using the source CSV and the SQL queries below.
-  </p>
-
-  <div class="chart-card" style="margin-bottom:20px">
-    <h3>Data Source</h3>
-    <div class="chart-subtitle">survey_2026_data_engineering.csv — 1,101 rows, 18 columns</div>
-    <div class="method-box">
-      <strong>Pre-processing steps:</strong><br>
-      1. Decoded integer-coded columns using the dictionary in the CSV header<br>
-      2. Parsed multi-value fields (team_focus, ai_helps_with, modeling_pain_points) by splitting on commas<br>
-      3. Cleaned orchestration into categories: Airflow, Dagster, Cloud-native, No orchestration, Other<br>
-      4. Open-ended responses (industry_wish) analyzed via keyword extraction and manual theme coding<br><br>
-
-      <strong>Cross-tabulation approach:</strong><br>
-      For each pair of dimensions (A × B), computed: <code>COUNT(*) GROUP BY A, B</code><br>
-      Then calculated row percentages: <code>count / SUM(count) OVER (PARTITION BY A)</code><br>
-      Statistical significance not claimed — this is exploratory analysis of a convenience sample.<br><br>
-
-      <strong>Compounding risk analysis:</strong><br>
-      Created binary flags for:<br>
-      • has_orchestration: orchestration != 'No orchestration / ad-hoc'<br>
-      • has_intentional_modeling: modeling_approach IN ('Kimball', 'Data Vault', 'Mixed', 'Canonical')<br>
-      • has_ai_adoption: ai_usage_frequency IN ('Multiple times per day', 'Daily')<br>
-      Then cross-tabulated the count of flags (0, 1, 2, 3) against team_growth_2026.
-    </div>
-  </div>
-
-  <div class="chart-card" style="margin-bottom:20px">
-    <h3>Key SQL Queries Used</h3>
-    <div class="method-box">
-<strong>1. AI Paradox — AI Adoption × Modeling Pain:</strong>
-<code>SELECT ai_adoption, modeling_pain_points != 'None' as has_pain, COUNT(*) FROM survey GROUP BY 1, 2</code>
-
-<strong>2. Orchestration × Growth:</strong>
-<code>SELECT CASE WHEN orchestration ILIKE '%no orch%' THEN 'None' ELSE 'Has Orchestration' END as orch, team_growth_2026, COUNT(*) FROM survey GROUP BY 1, 2</code>
-
-<strong>3. Compounding Risk Matrix:</strong>
-<code>SELECT (CASE WHEN orch != 'none' THEN 1 ELSE 0 END + CASE WHEN model IN (...) THEN 1 ELSE 0 END + CASE WHEN ai_freq IN (...) THEN 1 ELSE 0 END) as maturity_score, growth, COUNT(*) FROM survey GROUP BY 1, 2</code>
-
-<strong>4. Regional Stack Divergence:</strong>
-<code>SELECT region, storage_environment, COUNT(*), ROUND(COUNT(*)*100.0/SUM(COUNT(*)) OVER (PARTITION BY region),1) as pct FROM survey GROUP BY 1, 2 ORDER BY 1, 4 DESC</code>
-    </div>
-  </div>
-
-  <div class="chart-card">
-    <h3>Limitations & Caveats</h3>
-    <div class="method-box">
-      • <strong>Self-selection bias:</strong> Survey respondents skew toward engaged practitioners (readers of Joe Reis's content)<br>
-      • <strong>Role distribution:</strong> "Data Engineer" is 42% of responses — other roles have smaller sample sizes<br>
-      • <strong>Regional imbalance:</strong> US/Canada and Europe dominate; other regions have < 100 responses each<br>
-      • <strong>Correlation ≠ causation:</strong> Cross-tabulations show associations, not causal relationships<br>
-      • <strong>Multi-select fields:</strong> Pain points and team focus allow multiple selections, inflating total counts<br>
-      • <strong>Open response themes:</strong> Categorized via keyword matching, not formal NLP — approximate percentages
-    </div>
-  </div>
-</div>
-
-<!-- Footer -->
-<div class="footer">
-  Analysis by <a href="https://github.com/narendranath-edara">Narendranath Edara</a> for the
-  <a href="https://joereis.github.io/practical_data_data_eng_survey/">#PracticalDataSurvey Hackathon</a><br>
-  Data source: 2026 State of Data Engineering Survey by Joe Reis • 1,101 respondents • Published Feb 2026<br>
-  Built with Chart.js • All analysis reproducible via SQL on the source CSV
 </div>
 
 <script>
-// ============================================
-// DATA LOADING & ANALYSIS ENGINE
-// ============================================
+let ALL=[],FD=[],CX={};
+const DIMS=[
+  {k:'region',l:'Region'},{k:'industry',l:'Industry'},{k:'org_size',l:'Org Size'},{k:'role',l:'Role'},
+  {k:'ai_usage_frequency',l:'AI Frequency'},{k:'ai_adoption',l:'AI Adoption'},{k:'storage_environment',l:'Storage'},
+  {k:'orchestration',l:'Orchestration'},{k:'modeling_approach',l:'Modeling Approach'},
+  {k:'modeling_pain_points',l:'Modeling Pain Points'},{k:'architecture_trend',l:'Architecture Trend'},
+  {k:'biggest_bottleneck',l:'Biggest Bottleneck'},{k:'team_growth_2026',l:'Team Growth 2026'},
+  {k:'education_topic',l:'Education Topic'},{k:'team_focus',l:'Team Focus'},{k:'ai_helps_with',l:'AI Helps With'}
+];
+const AIM={'No meaningful adoption yet':0,'Experimenting':1,'Using AI for tactical tasks':2,'Building internal AI platforms':3,'AI embedded in most workflows':4};
+const PAL=['#0f7b5f','#2563eb','#d4850e','#c0392b','#7c3aed','#0891b2','#ea580c','#be185d','#059669','#4f46e5','#dc2626','#0d9488','#9333ea','#e11d48'];
+Chart.defaults.color='#9898b0';Chart.defaults.font.family="'Outfit',sans-serif";Chart.defaults.font.size=11;Chart.defaults.plugins.legend.display=false;
 
-// Dictionaries for decoding
-const ROLE_MAP = {0:'Manager/Director/VP',1:'Data Architect',2:'Platform Engineer',3:'Analytics Engineer',4:'BI Engineer',5:'Data Engineer',6:'Team of 1',8:'Analyst',9:'Data Analyst',10:'Startup Founder',11:'Software Engineer (data)',12:'ML Engineer/MLOps',13:'BI Leader',14:'All of above',15:'Agile Data Coach',16:'CDO',17:'Associate',18:'Data Analyst',19:'Data & AI Engineer',20:'BI & Data Eng',21:'Product Analyst',22:'AI Engineer',23:'Founder',24:'Founder',25:'TAM',26:'Ops System Designer',27:'Data Gov Consultant',28:'BI Analyst',29:'Migration Consultant',30:'Report Developer',31:'Data Products',32:'BI Functional Analyst',33:'Data Analyst',34:'Data PM',36:'Data Scientist',37:'BI Developer',38:'Solution Architect',39:'MLOps/ML Eng/Platform',40:'Nonprofit Director',41:'Product Manager',42:'Product Manager',43:'Data Scientist',44:'BI Specialist',45:'Principal DevRel',46:'Data BA/PO',47:'SRE',48:'All of the above',49:'Tech Strategist',50:'Product Manager',51:'Data Modeller',52:'Consultant',53:'Head of Dev/Architect',54:'Standards Dev',55:'ML Professor',56:'Data Platform PM',57:'DE & Mainframe Dev',58:'Knowledge Engineer',59:'Data Analyst',63:'Sales Engineer',64:'Field CTO',65:'Job Seeker',66:'Data Product Manager',71:'Data & Analytics Eng',75:'BI Engineer',76:'CTO',77:'BI Consultant',78:'BI Analyst',79:'Practice Lead',80:'Senior Analyst',81:'Data Intelligence',82:'BI',83:'Data Modeler',84:'Product Data Analyst',87:'DE Consultant',88:'Data Gov Lead',89:'Sales Engineer',90:'Business Owner',91:'Data/ML/AI Consultant',93:'AI Platform Founder'};
-const ORGSIZE_MAP = {0:'< 50',1:'200–999',2:'1,000–10,000',3:'10,000+',4:'50–199'};
-const INDUSTRY_MAP = {0:'Tech',1:'Public sector/Education',2:'Manufacturing/Industrial',3:'Finance',4:'Retail/e-commerce',5:'Healthcare'};
-const STORAGE_MAP = {0:'Cloud PostgreSQL/MySQL',1:'Mixed/hybrid',2:'Cloud DWH (Snowflake/BQ/RS)',3:'Lakehouse (Databricks/Iceberg)',4:'On-prem data lake',5:'On-prem DWH',6:'Other'};
-const AI_FREQ_MAP = {0:'Multiple times/day',1:'Weekly',2:'Daily',3:'Rarely',4:'Never'};
-const AI_ADOPT_MAP = {0:'Using AI for tactical tasks',1:'Experimenting',2:'Building internal AI platforms',3:'AI embedded in most workflows',4:'No meaningful adoption yet'};
-const REGION_MAP = {0:'US / Canada',1:'Europe (EU/UK)',2:'Asia–Pacific',3:'Latin America',4:'Middle East / Africa',5:'UK / Ireland',6:'Other'};
-
-// Simplified role grouping for analysis
-function groupRole(code) {
-  const c = parseInt(code);
-  if (c === 5) return 'Data Engineer';
-  if (c === 0) return 'Manager/Director/VP';
-  if (c === 3) return 'Analytics Engineer';
-  if (c === 1) return 'Data Architect';
-  if (c === 11) return 'Software Eng (data)';
-  if (c === 12) return 'ML Engineer';
-  if (c === 22) return 'AI Engineer';
-  if ([2,4,6,8,9,18,33].includes(c)) return 'Analyst/BI';
-  return 'Other';
+async function init(){
+  const names=['survey_2026_data_engineering.csv','survey.csv'];let txt=null;
+  for(const n of names){try{const r=await fetch(n);if(r.ok){txt=await r.text();break;}}catch(e){}}
+  if(!txt){document.getElementById('loader').innerHTML='<p style="color:#c0392b">Could not load CSV. Place survey_2026_data_engineering.csv in the same folder.</p>';return;}
+  ALL=Papa.parse(txt,{header:true,skipEmptyLines:true,transformHeader:h=>h.trim()}).data.filter(r=>r.role&&r.role.trim());
+  FD=[...ALL];popFilters();popDimSelects();apply();
+  document.getElementById('loader').classList.add('out');
+  setTimeout(()=>document.getElementById('loader').style.display='none',500);
+  observeCards();animateFindings();
 }
 
-function groupOrchestration(orch) {
-  if (!orch) return 'Other';
-  const o = orch.toLowerCase().trim();
-  if (o.includes('no orchestration') || o === 'not sure') return 'No orchestration';
-  if (o.includes('airflow') || o === 'airflow') return 'Airflow';
-  if (o.includes('dagster')) return 'Dagster';
-  if (o.includes('cloud-native') || o.includes('cloud composer') || o.includes('mwaa')) return 'Cloud-native';
-  if (o.includes('prefect')) return 'Prefect';
-  if (o.includes('dbt') || o.includes('databricks') || o.includes('lakeflow')) return 'Databricks/dbt';
-  return 'Other';
-}
-
-function groupModeling(code) {
-  const c = parseInt(code);
-  if (c === 0) return 'Kimball';
-  if (c === 1) return 'Mixed';
-  if (c === 2) return 'Ad-hoc';
-  if (c === 3) return 'Canonical/Semantic';
-  if (c === 4) return 'One Big Table';
-  if (c === 5) return 'Event-driven';
-  if (c === 7) return 'Data Vault';
-  return 'Other';
-}
-
-function groupRegion(code) {
-  const c = parseInt(code);
-  if (c === 0) return 'US / Canada';
-  if (c === 1 || c === 5) return 'Europe';
-  if (c === 2) return 'Asia-Pacific';
-  if (c === 3) return 'Latin America';
-  if (c === 4) return 'ME / Africa';
-  return 'Other';
-}
-
-let DATA = [];
-
-async function loadData() {
-  const resp = await fetch('survey_2026_data_engineering.csv');
-  const text = await resp.text();
-
-  // Parse — handle quoted fields
-  const lines = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (ch === '"') { inQuotes = !inQuotes; current += ch; }
-    else if (ch === '\n' && !inQuotes) { lines.push(current); current = ''; }
-    else { current += ch; }
+function popFilters(){
+  const m={'f-region':'region','f-industry':'industry','f-orgsize':'org_size','f-role':'role','f-ai':'ai_adoption','f-growth':'team_growth_2026'};
+  for(const[id,f]of Object.entries(m)){
+    const s=document.getElementById(id);while(s.options.length>1)s.remove(1);
+    [...new Set(ALL.map(r=>r[f]).filter(Boolean))].sort().forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});
   }
-  if (current.trim()) lines.push(current);
+}
+function popDimSelects(){['xt-r','xt-c','ex-dim'].forEach(id=>{const s=document.getElementById(id);s.innerHTML='';DIMS.forEach(d=>{const o=document.createElement('option');o.value=d.k;o.textContent=d.l;s.appendChild(o);});});
+  document.getElementById('xt-r').value='region';document.getElementById('xt-c').value='ai_adoption';document.getElementById('ex-dim').value='ai_adoption';
+}
 
-  // Find header
-  let headerIdx = -1;
-  for (let i = 0; i < Math.min(lines.length, 5); i++) {
-    if (lines[i].startsWith('ts,role') || lines[i].startsWith('ts,') || lines[i].includes('role,org_size')) {
-      headerIdx = i;
-      break;
+function apply(){
+  const f={region:'f-region',industry:'f-industry',org_size:'f-orgsize',role:'f-role',ai_adoption:'f-ai',team_growth_2026:'f-growth'};
+  FD=ALL.filter(r=>{for(const[field,id]of Object.entries(f)){const v=document.getElementById(id).value;if(v!=='all'&&r[field]!==v)return false;}return true;});
+  document.getElementById('fc').textContent=FD.length;document.getElementById('ft').textContent=ALL.length;
+  renderAll();renderDataTab();
+}
+function reset(){['f-region','f-industry','f-orgsize','f-role','f-ai','f-growth'].forEach(id=>document.getElementById(id).value='all');apply();}
+
+function grp(d,f){const g={};d.forEach(r=>{const k=r[f]||'';if(k){if(!g[k])g[k]=[];g[k].push(r);}});return g;}
+function pct(n,d){return d?(n/d*100):0;}
+function avg(d,f,fn){let s=0,c=0;d.forEach(r=>{const v=fn(r[f]);if(v!=null&&!isNaN(v)){s+=v;c++;}});return c?s/c:0;}
+function has(row,field,term){return row[field]&&row[field].includes(term);}
+function catBn(s){if(!s)return'Other';const l=s.toLowerCase();if(l.includes('leadership'))return'Leadership';if(l.includes('legacy')||l.includes('tech debt'))return'Tech Debt';if(l.includes('requirement')||l.includes('upstream'))return'Requirements';if(l.includes('quality'))return'Data Quality';if(l.includes('talent')||l.includes('hiring')||l.includes('not enough'))return'Talent';if(l.includes('cost')||l.includes('budget'))return'Cost';if(l.includes('tool'))return'Tool Complexity';return'Other';}
+function countF(d,f){const c={};d.forEach(r=>{const v=r[f];if(v&&v.trim())c[v]=(c[v]||0)+1;});return Object.fromEntries(Object.entries(c).sort((a,b)=>b[1]-a[1]));}
+function countMF(d,f){const c={};d.forEach(r=>{if(!r[f])return;r[f].split(',').forEach(v=>{v=v.trim().replace(/"/g,'');if(v)c[v]=(c[v]||0)+1;});});return Object.fromEntries(Object.entries(c).sort((a,b)=>b[1]-a[1]));}
+
+function mkChart(id,type,cfg){if(CX[id])CX[id].destroy();const cv=document.getElementById(id);if(!cv)return;CX[id]=new Chart(cv,{type,...cfg});return CX[id];}
+function hbars(id,data,opts={}){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML='';
+  const entries=Object.entries(data).sort((a,b)=>b[1]-a[1]);
+  const mx=opts.max||Math.max(...entries.map(e=>e[1]))*1.15||1;
+  const suf=opts.suf||'%';const dec=opts.dec??1;
+  const cfn=opts.cfn||(()=>'var(--accent)');
+  entries.forEach(([l,v],i)=>{
+    const w=Math.max(0,Math.min(100,v/mx*100));
+    const count=opts.counts?opts.counts[l]:'';
+    const tip=count?`n=${count}`:`${v.toFixed(dec)}${suf}`;
+    el.innerHTML+=`<div class="hrow"><div class="hrow-label" title="${l}">${l}</div><div class="hrow-track"><div class="hrow-fill" data-w="${w}" style="background:${cfn(l,v)}"></div><div class="hrow-tooltip">${l}: ${tip}</div></div><div class="hrow-val">${v.toFixed(dec)}${suf}</div></div>`;
+  });
+  // Animate bars
+  requestAnimationFrame(()=>{
+    el.querySelectorAll('.hrow-fill').forEach((bar,i)=>{
+      setTimeout(()=>{bar.style.width=bar.dataset.w+'%';},i*40);
+    });
+  });
+}
+function ds(v,lo,hi){return v>=hi?'var(--red)':v>=lo?'var(--amber)':'var(--accent)';}
+
+function mkDonut(id,val,color){
+  const rest=100-val;
+  mkChart(id,'doughnut',{
+    data:{datasets:[{data:[val,rest],backgroundColor:[color,'#eae5de'],borderWidth:0,borderRadius:6}]},
+    options:{responsive:true,cutout:'72%',plugins:{tooltip:{callbacks:{label:ctx=>ctx.dataIndex===0?val.toFixed(1)+'%':''}},legend:{display:false}},animation:{animateRotate:true,duration:1200,easing:'easeOutQuart'}}
+  });
+  document.getElementById(id+'v').textContent=val.toFixed(0)+'%';
+}
+
+function renderAll(){
+  const d=FD,n=d.length;if(!n)return;
+
+  mkDonut('d1',pct(d.filter(r=>has(r,'team_focus','Fighting fires')).length,n),'#c0392b');
+  mkDonut('d2',pct(d.filter(r=>r.ai_usage_frequency==='Multiple times per day'||r.ai_usage_frequency==='Daily').length,n),'#0f7b5f');
+  mkDonut('d3',pct(d.filter(r=>r.orchestration&&r.orchestration.toLowerCase().includes('no orchestration')).length,n),'#d4850e');
+  mkDonut('d4',pct(d.filter(r=>r.team_growth_2026==='Grow').length,n),'#2563eb');
+  mkDonut('d5',pct(d.filter(r=>r.modeling_pain_points&&!r.modeling_pain_points.includes('None / modeling is going well')).length,n),'#7c3aed');
+
+  renderHeatmap();
+
+  // Region AI chart
+  const rg=grp(d,'region');const regs=Object.keys(rg).filter(r=>r!=='Prefer not to say'&&rg[r].length>=5).sort();
+  const sr=regs.map(r=>r.replace('United States / Canada','US/CAN').replace('Europe (EU / UK)','Europe').replace('Asia\u2013Pacific','APAC').replace('Latin America','LATAM').replace('Middle East / Africa','MEA').replace('Australia / New Zealand','AUS/NZ'));
+  mkChart('c-region-ai','bar',{
+    data:{labels:sr,datasets:[
+      {label:'AI Embedded',data:regs.map(r=>pct(rg[r].filter(x=>x.ai_adoption==='AI embedded in most workflows').length,rg[r].length)),backgroundColor:'#0f7b5f',borderRadius:3},
+      {label:'Building Platforms',data:regs.map(r=>pct(rg[r].filter(x=>x.ai_adoption==='Building internal AI platforms').length,rg[r].length)),backgroundColor:'#7c3aed',borderRadius:3},
+      {label:'Still Experimenting',data:regs.map(r=>pct(rg[r].filter(x=>x.ai_adoption==='Experimenting').length,rg[r].length)),backgroundColor:'#d4850e',borderRadius:3},
+      {label:'No Adoption',data:regs.map(r=>pct(rg[r].filter(x=>x.ai_adoption==='No meaningful adoption yet').length,rg[r].length)),backgroundColor:'#c0392b',borderRadius:3}
+    ]},
+    options:{responsive:true,animation:{duration:800,easing:'easeOutQuart'},plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,padding:14,font:{size:10}}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#eae5de'},ticks:{callback:v=>v+'%'},beginAtZero:true}}}
+  });
+
+  const ig=grp(d,'industry');const iar={};
+  for(const[k,rows]of Object.entries(ig)){if(rows.length>=5)iar[k.replace(' / Industrial','').replace('/e-commerce','').replace(' / Education','')]=avg(rows,'ai_adoption',v=>AIM[v]??null);}
+  hbars('b-ind-ai',iar,{max:4,suf:'',dec:2,cfn:(l,v)=>ds(v,1.7,2.0)});
+
+  const ag=grp(d,'ai_adoption');const ord=['Experimenting','Using AI for tactical tasks','No meaningful adoption yet','Building internal AI platforms','AI embedded in most workflows'];
+  const slab={'Experimenting':'Experimenting','Using AI for tactical tasks':'Tactical Tasks','No meaningful adoption yet':'No Adoption','Building internal AI platforms':'Building Platforms','AI embedded in most workflows':'AI Embedded'};
+  const asd={};ord.forEach(l=>{const rows=ag[l]||[];if(rows.length>5)asd[slab[l]]=pct(rows.filter(r=>has(r,'modeling_pain_points','AI tools produce inconsistent')).length,rows.length);});
+  hbars('b-ai-schema',asd,{max:12,cfn:(l,v)=>ds(v,4,6)});
+
+  const doom={};
+  const calc=(label,subset)=>{if(subset.length>=8)doom[label]=pct(subset.filter(r=>has(r,'team_focus','Fighting fires')).length,subset.length);};
+  calc('Ad-hoc modeling',d.filter(r=>r.modeling_approach==='Ad-hoc / tables added as needed'));
+  calc('Leadership gap',d.filter(r=>r.biggest_bottleneck&&r.biggest_bottleneck.toLowerCase().includes('leadership')));
+  calc('One Big Table',d.filter(r=>r.modeling_approach==='One Big Table'));
+  calc('No orchestration',d.filter(r=>r.orchestration&&r.orchestration.toLowerCase().includes('no orchestration')));
+  calc('Legacy / tech debt',d.filter(r=>r.biggest_bottleneck&&(r.biggest_bottleneck.toLowerCase().includes('legacy')||r.biggest_bottleneck.toLowerCase().includes('tech debt'))));
+  calc('Kimball modeling',d.filter(r=>r.modeling_approach==='Kimball-style dimensional modeling'));
+  calc('Mixed approach',d.filter(r=>r.modeling_approach==='Mixed (depends on use case)'));
+  calc('Semantic models',d.filter(r=>r.modeling_approach==='Canonical/semantic models'));
+  hbars('b-doom',doom,{max:48,cfn:(l,v)=>ds(v,25,32)});
+
+  const ifr={};for(const[k,rows]of Object.entries(ig)){if(rows.length>=8)ifr[k.replace(' / Industrial','').replace('/e-commerce','').replace(' / Education','')]=pct(rows.filter(r=>has(r,'team_focus','Fighting fires')).length,rows.length);}
+  hbars('b-ind-fire',ifr,{max:42,cfn:(l,v)=>ds(v,24,30)});
+
+  const stMap={'Cloud data warehouse (Snowflake, BigQuery, Redshift, etc.)':'Cloud Warehouse','Lakehouse (Databricks, Iceberg/Hudi/Delta + compute engine)':'Lakehouse','Mixed/hybrid':'Mixed/Hybrid','On-prem data warehouse':'On-prem Warehouse','Cloud PostgreSQL/MySQL':'Cloud Postgres','On-prem data lake / lakehouse':'On-prem Lakehouse'};
+  const sfr={};for(const[raw,label]of Object.entries(stMap)){const rows=d.filter(r=>r.storage_environment===raw);if(rows.length>=8)sfr[label]=pct(rows.filter(r=>has(r,'team_focus','Fighting fires')).length,rows.length);}
+  hbars('b-stor-fire',sfr,{max:42,cfn:(l,v)=>ds(v,25,32)});
+
+  renderRegBnTable();
+
+  const topics=['AI/LLM integration','Architecture patterns','Data modeling','Semantics / ontologies / knowledge graphs','Reliability engineering','Streaming / event-driven systems'];
+  const stpcs=['AI/LLM','Architecture','Modeling','Semantics','Reliability','Streaming'];
+  const eregs=Object.keys(rg).filter(r=>r!=='Prefer not to say'&&rg[r].length>=10);
+  const esr=eregs.map(r=>r.replace('United States / Canada','US').replace('Europe (EU / UK)','EU').replace('Asia\u2013Pacific','APAC').replace('Latin America','LATAM').replace('Middle East / Africa','MEA').replace('Australia / New Zealand','AUS'));
+  mkChart('c-edu','bar',{
+    data:{labels:stpcs,datasets:esr.map((s,i)=>({
+      label:s,data:topics.map(t=>pct(rg[eregs[i]].filter(r=>r.education_topic===t).length,rg[eregs[i]].length)),
+      backgroundColor:PAL[i]+'aa',borderColor:PAL[i],borderWidth:1,borderRadius:3
+    }))},
+    options:{responsive:true,animation:{duration:800},plugins:{legend:{display:true,position:'top',labels:{boxWidth:8,padding:10,font:{size:9}}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#eae5de'},ticks:{callback:v=>v+'%'},beginAtZero:true}}}
+  });
+
+  const shk={};Object.entries(rg).filter(([k])=>k!=='Prefer not to say').forEach(([r,rows])=>{if(rows.length>=10)shk[r.replace('United States / Canada','US/Canada').replace('Europe (EU / UK)','Europe').replace('Asia\u2013Pacific','APAC').replace('Latin America','LATAM').replace('Middle East / Africa','MEA').replace('Australia / New Zealand','AUS/NZ')]=pct(rows.filter(x=>x.team_growth_2026==='Shrink').length,rows.length);});
+  hbars('b-shrink',shk,{max:16,cfn:(l,v)=>ds(v,7,10)});
+
+  const sizes=['< 50 employees','50\u2013199','200\u2013999','1,000\u201310,000','10,000+'];
+  const ssizes=['<50','50-199','200-999','1K-10K','10K+'];
+  const og=grp(d,'org_size');
+  const bcats=['Talent','Leadership','Tech Debt','Requirements','Data Quality'];
+  const bcols=['#be185d','#c0392b','#d4850e','#7c3aed','#0891b2'];
+  mkChart('c-org-bn','bar',{
+    data:{labels:ssizes,datasets:bcats.map((cat,i)=>({
+      label:cat,data:sizes.map(s=>{const rows=og[s]||[];return pct(rows.filter(r=>catBn(r.biggest_bottleneck)===cat).length,rows.length);}),
+      backgroundColor:bcols[i]+'cc',borderRadius:2,borderSkipped:false
+    }))},
+    options:{responsive:true,animation:{duration:800},plugins:{legend:{display:true,position:'top',labels:{boxWidth:8,padding:10,font:{size:9}}}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#eae5de'},ticks:{callback:v=>v+'%'}}}}
+  });
+
+  const oai={};sizes.forEach((s,i)=>{const rows=og[s]||[];if(rows.length>=5)oai[ssizes[i]]=avg(rows,'ai_adoption',v=>AIM[v]??null);});
+  hbars('b-org-ai',oai,{max:4,suf:'',dec:2,cfn:(l,v)=>ds(v,1.8,1.9)});
+
+  renderShrinkTable();
+}
+
+function renderHeatmap(){
+  const tbl=document.getElementById('heatmap');
+  const rg=grp(FD,'region');
+  const regions=Object.keys(rg).filter(r=>r!=='Prefer not to say').sort();
+  const industries=[...new Set(FD.map(r=>r.industry).filter(Boolean))].sort();
+  const short={'United States / Canada':'US/Canada','Europe (EU / UK)':'Europe','Asia\u2013Pacific':'APAC','Latin America':'LATAM','Middle East / Africa':'MEA','Australia / New Zealand':'AUS/NZ'};
+  const shortInd=i=>i.replace(' / Industrial','').replace('/e-commerce','').replace(' / Education','');
+  const mx={};let maxV=0;
+  regions.forEach(r=>{mx[r]={};industries.forEach(ind=>{const c=FD.filter(x=>x.region===r&&x.industry===ind).length;mx[r][ind]=c;if(c>maxV)maxV=c;});});
+  let h='<thead><tr><th></th>';industries.forEach(i=>h+=`<th>${shortInd(i)}</th>`);h+='<th>Total</th></tr></thead><tbody>';
+  regions.forEach(r=>{
+    h+=`<tr><td>${short[r]||r}</td>`;let rowT=0;
+    industries.forEach(ind=>{
+      const v=mx[r][ind];rowT+=v;
+      const intensity=maxV?v/maxV:0;
+      const bg=intensity>0.5?`rgba(15,123,95,${0.1+intensity*0.4})`:(intensity>0.15?`rgba(15,123,95,${intensity*0.35})`:'transparent');
+      const fw=intensity>0.3?'600':'400';const col=intensity>0.5?'#0f7b5f':'inherit';
+      h+=`<td><span class="heat-cell" style="background:${bg};font-weight:${fw};color:${col}">${v}</span></td>`;
+    });h+=`<td style="font-weight:600;">${rowT}</td></tr>`;
+  });
+  h+='<tr style="font-weight:600;"><td>Total</td>';
+  industries.forEach(ind=>{let t=0;regions.forEach(r=>t+=mx[r][ind]);h+=`<td>${t}</td>`;});
+  h+=`<td style="color:var(--accent);font-weight:700;">${FD.length}</td></tr></tbody>`;tbl.innerHTML=h;
+}
+
+function renderRegBnTable(){
+  const rg=grp(FD,'region');const tbody=document.querySelector('#t-regbn tbody');tbody.innerHTML='';
+  Object.entries(rg).filter(([k])=>k!=='Prefer not to say').sort((a,b)=>b[1].length-a[1].length).forEach(([region,rows])=>{
+    const cats={};rows.forEach(r=>{const c=catBn(r.biggest_bottleneck);cats[c]=(cats[c]||0)+1;});
+    const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+    const t=sorted[0]||['\u2014',0],s=sorted[1]||['\u2014',0];
+    tbody.innerHTML+=`<tr><td>${region}</td><td class="good">${t[0]}</td><td class="good">${pct(t[1],rows.length).toFixed(1)}%</td><td>${s[0]}</td><td>${pct(s[1],rows.length).toFixed(1)}%</td></tr>`;
+  });
+}
+
+function renderShrinkTable(){
+  const sh=FD.filter(r=>r.team_growth_2026==='Shrink'),gr=FD.filter(r=>r.team_growth_2026==='Grow');
+  const tbody=document.querySelector('#t-shrink tbody');tbody.innerHTML='';
+  if(sh.length<3||gr.length<3){tbody.innerHTML='<tr><td colspan="3" style="text-align:center;color:var(--ink-faint)">Not enough data for this filter</td></tr>';return;}
+  const metrics=[
+    ['Leadership bottleneck',r=>r.biggest_bottleneck&&r.biggest_bottleneck.toLowerCase().includes('leadership')],
+    ['AI embedded in workflows',r=>r.ai_adoption==='AI embedded in most workflows'],
+    ['No AI adoption',r=>r.ai_adoption==='No meaningful adoption yet'],
+    ['Fighting fires',r=>has(r,'team_focus','Fighting fires')],
+    ['No orchestration',r=>r.orchestration&&r.orchestration.toLowerCase().includes('no orchestration')],
+    ['Talent bottleneck',r=>r.biggest_bottleneck&&(r.biggest_bottleneck.toLowerCase().includes('talent')||r.biggest_bottleneck.toLowerCase().includes('hiring'))]
+  ];
+  metrics.forEach(([label,fn])=>{
+    const sv=pct(sh.filter(fn).length,sh.length).toFixed(1),gv=pct(gr.filter(fn).length,gr.length).toFixed(1);
+    const sc=parseFloat(sv)>parseFloat(gv)+3?'bad':'',gc=parseFloat(gv)>parseFloat(sv)+3?'good':'';
+    tbody.innerHTML+=`<tr><td>${label}</td><td class="${sc}">${sv}%</td><td class="${gc}">${gv}%</td></tr>`;
+  });
+}
+
+// CROSS-TAB
+function runXT(){
+  const rf=document.getElementById('xt-r').value,cf=document.getElementById('xt-c').value;
+  const metric=document.querySelector('input[name="xtm"]:checked').value;
+  const out=document.getElementById('xt-out');
+  const rvals=[...new Set(FD.map(r=>r[rf]).filter(Boolean))].sort();
+  const cvals=[...new Set(FD.map(r=>r[cf]).filter(Boolean))].sort();
+  const mx={},rt={},ct={};let grand=0;
+  rvals.forEach(r=>{mx[r]={};rt[r]=0;cvals.forEach(c=>mx[r][c]=0);});cvals.forEach(c=>ct[c]=0);
+  FD.forEach(r=>{const rv=r[rf],cv=r[cf];if(rv&&cv&&mx[rv]){mx[rv][cv]++;rt[rv]++;ct[cv]=(ct[cv]||0)+1;grand++;}});
+  let allV=[];rvals.forEach(r=>cvals.forEach(c=>{let v=mx[r][c];if(metric==='row')v=rt[r]?v/rt[r]*100:0;if(metric==='col')v=ct[c]?v/ct[c]*100:0;allV.push(v);}));
+  const maxV=Math.max(...allV)||1;
+  let h=`<table class="xt-tbl"><thead><tr><th>${DIMS.find(d=>d.k===rf)?.l||rf} / ${DIMS.find(d=>d.k===cf)?.l||cf}</th>`;
+  cvals.forEach(c=>h+=`<th>${c}</th>`);h+='<th>Total</th></tr></thead><tbody>';
+  rvals.forEach(rv=>{
+    h+='<tr><td>'+rv+'</td>';
+    cvals.forEach(cv=>{
+      let v=mx[rv][cv],disp=v;
+      if(metric==='row'){v=rt[rv]?v/rt[rv]*100:0;disp=v.toFixed(1)+'%';}
+      else if(metric==='col'){v=ct[cv]?v/ct[cv]*100:0;disp=v.toFixed(1)+'%';}
+      const ratio=v/maxV;let cls='';if(ratio>.65)cls='xt-hi';else if(ratio>.35)cls='xt-mid';
+      h+=`<td class="${cls}">${disp}</td>`;
+    });h+=`<td style="font-weight:600">${rt[rv]}</td></tr>`;
+  });
+  h+='<tr style="font-weight:600"><td>Total</td>';cvals.forEach(c=>h+=`<td>${ct[c]||0}</td>`);
+  h+=`<td>${grand}</td></tr></tbody></table>`;out.innerHTML=h;
+}
+
+// EXPLORER
+let exType='bar';
+function setExType(t,btn){exType=t;document.querySelectorAll('.ex-type').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+function renderEx(){
+  const dim=document.getElementById('ex-dim').value;
+  const multi=['team_focus','ai_helps_with','modeling_pain_points'];
+  const data=multi.includes(dim)?countMF(FD,dim):countF(FD,dim);
+  const entries=Object.entries(data).slice(0,15);const labels=entries.map(e=>e[0]),vals=entries.map(e=>e[1]);
+  const type=exType==='hbar'?'bar':exType;const isH=exType==='hbar';const isPie=['pie','doughnut'].includes(type);
+  mkChart('c-ex',type,{
+    data:{labels,datasets:[{data:vals,backgroundColor:isPie?PAL.slice(0,labels.length):'rgba(15,123,95,0.7)',borderColor:isPie?'#fff':'rgba(15,123,95,1)',borderWidth:isPie?2:0,borderRadius:isPie?0:4}]},
+    options:{responsive:true,indexAxis:isH?'y':'x',animation:{duration:800,easing:'easeOutQuart'},plugins:{legend:{display:isPie,position:'right',labels:{boxWidth:10,font:{size:10},padding:8}},tooltip:{padding:10}},
+      scales:isPie?{}:{x:{grid:{color:isH?'#eae5de':false},ticks:{maxRotation:45}},y:{grid:{color:isH?false:'#eae5de'},beginAtZero:true}}
     }
-  }
-  if (headerIdx === -1) headerIdx = 0;
-
-  const headers = parseCsvLine(lines[headerIdx]);
-
-  for (let i = headerIdx + 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line || line.startsWith('#') || line.startsWith('//')) continue;
-    const vals = parseCsvLine(line);
-    if (vals.length < 10) continue;
-
-    const row = {};
-    headers.forEach((h, j) => { row[h.trim()] = (vals[j] || '').trim(); });
-
-    // Skip dictionary lines
-    if (row.role === undefined || row.role === '') continue;
-
-    // Decode
-    row._role = groupRole(row.role);
-    row._orgsize = ORGSIZE_MAP[parseInt(row.org_size)] || row.org_size;
-    row._industry = INDUSTRY_MAP[parseInt(row.industry)] || row.industry;
-    row._storage = STORAGE_MAP[parseInt(row.storage_environment)] || 'Other';
-    row._ai_freq = AI_FREQ_MAP[parseInt(row.ai_usage_frequency)] || row.ai_usage_frequency;
-    row._ai_adopt = AI_ADOPT_MAP[parseInt(row.ai_adoption)] || row.ai_adoption;
-    row._region = groupRegion(row.region);
-    row._orch = groupOrchestration(row.orchestration);
-    row._modeling = groupModeling(row.modeling_approach);
-    row._growth = row.team_growth_2026;
-    row._bottleneck = row.biggest_bottleneck;
-    row._wish = row.industry_wish || '';
-    row._pain = row.modeling_pain_points || '';
-
-    // Maturity flags
-    row._has_orch = row._orch !== 'No orchestration' ? 1 : 0;
-    row._has_model = ['Kimball','Mixed','Data Vault','Canonical/Semantic','Event-driven'].includes(row._modeling) ? 1 : 0;
-    row._has_ai = ['Multiple times/day','Daily'].includes(row._ai_freq) ? 1 : 0;
-    row._maturity = row._has_orch + row._has_model + row._has_ai;
-
-    DATA.push(row);
-  }
-}
-
-function parseCsvLine(line) {
-  const result = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
-        current += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (ch === ',' && !inQuotes) {
-      result.push(current);
-      current = '';
-    } else {
-      current += ch;
-    }
-  }
-  result.push(current);
-  return result;
-}
-
-// Analysis helpers
-function countBy(arr, key) {
-  const counts = {};
-  arr.forEach(r => {
-    const v = r[key] || '(blank)';
-    counts[v] = (counts[v] || 0) + 1;
   });
-  return counts;
+  const total=vals.reduce((a,b)=>a+b,0);let t='<table class="cmp"><thead><tr><th>Value</th><th>Count</th><th>Percent</th></tr></thead><tbody>';
+  entries.forEach(([l,v])=>t+=`<tr><td>${l}</td><td>${v}</td><td>${(v/total*100).toFixed(1)}%</td></tr>`);
+  t+='</tbody></table>';document.getElementById('ex-tbl').innerHTML=t;
 }
 
-function crossTab(arr, keyA, keyB) {
-  const result = {};
-  arr.forEach(r => {
-    const a = r[keyA] || '(blank)';
-    const b = r[keyB] || '(blank)';
-    if (!result[a]) result[a] = {};
-    result[a][b] = (result[a][b] || 0) + 1;
-  });
-  return result;
+// DATA BROWSER
+let sortC=null,sortD=1;
+function renderDataTab(){
+  const cols=['role','org_size','industry','region','ai_usage_frequency','ai_adoption','storage_environment','orchestration','modeling_approach','biggest_bottleneck','team_growth_2026','education_topic'];
+  let data=[...FD];
+  if(sortC)data.sort((a,b)=>{const av=(a[sortC]||'').toLowerCase(),bv=(b[sortC]||'').toLowerCase();return av<bv?-sortD:av>bv?sortD:0;});
+  const show=data.slice(0,200);
+  let h='<table><thead><tr>';cols.forEach(c=>{const ar=sortC===c?(sortD===1?' \u25B2':' \u25BC'):'';h+=`<th onclick="sortD_('${c}')">${c.replace(/_/g,' ')}${ar}</th>`;});
+  h+='</tr></thead><tbody>';show.forEach(r=>{h+='<tr>';cols.forEach(c=>h+=`<td title="${(r[c]||'').replace(/"/g,'&quot;')}">${r[c]||''}</td>`);h+='</tr>';});
+  h+='</tbody></table>';document.getElementById('data-wrap').innerHTML=h;
+  document.getElementById('data-info').textContent=`Showing ${Math.min(200,FD.length)} of ${FD.length} filtered rows. Click column headers to sort.`;
+}
+function sortD_(c){if(sortC===c)sortD*=-1;else{sortC=c;sortD=1;}renderDataTab();}
+
+// TABS
+function switchTab(id,btn){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');btn.classList.add('on');
 }
 
-function pctOf(count, total) {
-  return total > 0 ? Math.round(count / total * 1000) / 10 : 0;
+// ANIMATIONS
+function observeCards(){
+  const obs=new IntersectionObserver((entries)=>{entries.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('vis'),i*80);obs.unobserve(e.target);}});},{threshold:0.08,rootMargin:'0px 0px -30px 0px'});
+  document.querySelectorAll('.card:not(.full)').forEach(c=>obs.observe(c));
+}
+function animateFindings(){
+  const findings=document.querySelectorAll('.finding');
+  const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('visible'),parseInt(e.target.dataset.delay)||0);obs.unobserve(e.target);}});},{threshold:0.2});
+  findings.forEach(f=>obs.observe(f));
 }
 
-// Color palette
-const COLORS = ['#3b82f6','#8b5cf6','#ec4899','#10b981','#f59e0b','#06b6d4','#ef4444','#6366f1','#14b8a6','#f97316','#a855f7','#22c55e'];
-const COLORS_ALPHA = COLORS.map(c => c + '99');
-
-// Chart defaults
-Chart.defaults.color = '#8b97b8';
-Chart.defaults.borderColor = '#2a3450';
-Chart.defaults.font.family = "'Inter', sans-serif";
-Chart.defaults.font.size = 11;
-Chart.defaults.plugins.legend.labels.padding = 12;
-Chart.defaults.plugins.legend.labels.usePointStyle = true;
-Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
-
-// ============================================
-// RENDER ALL SECTIONS
-// ============================================
-async function init() {
-  await loadData();
-  if (DATA.length === 0) {
-    document.getElementById('loading').innerHTML = '<div style="color:#ef4444">Error loading data. Make sure survey_2026_data_engineering.csv is in the same directory.</div>';
-    return;
-  }
-
-  renderOverview();
-  renderAIParadox();
-  renderOrchestration();
-  renderModelingPain();
-  renderRegional();
-  renderGrowth();
-  renderVoices();
-
-  document.getElementById('loading').classList.add('hidden');
-}
-
-// ============================================
-// SECTION: Overview KPIs
-// ============================================
-function renderOverview() {
-  const n = DATA.length;
-
-  // Compounding risk
-  const maturityGrowth = {};
-  DATA.forEach(r => {
-    const m = r._maturity;
-    if (!maturityGrowth[m]) maturityGrowth[m] = {grow:0,shrink:0,same:0,unsure:0,total:0};
-    maturityGrowth[m].total++;
-    if (r._growth === 'Grow') maturityGrowth[m].grow++;
-    else if (r._growth === 'Shrink') maturityGrowth[m].shrink++;
-    else if (r._growth === 'Stay the same') maturityGrowth[m].same++;
-    else maturityGrowth[m].unsure++;
-  });
-
-  const noOrch = DATA.filter(r => r._has_
+init();
+</script>
+</body>
+</html>

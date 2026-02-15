@@ -259,59 +259,59 @@ body{background:var(--paper);color:var(--ink);font-family:var(--font-sans);font-
     <button class="tab" onclick="switchTab('data',this)">Raw Data</button>
   </div>
 
-  <!-- INSIGHTS PANE -->
-  <div class="pane on" id="p-insights">
-    <div class="hero">
-      <div class="hero-eyebrow">#PracticalDataSurvey Hackathon Analysis</div>
-      <h1>2026 State of Data Engineering Hackathon</h1>
-        <p style="font-family:var(--font-mono);font-size:12px;color:var(--ink-muted);margin-bottom:14px;letter-spacing:0.5px;">
-          by <strong style="color:var(--ink-soft);">Narendranath Edara</strong> · February 2026
-        </p>
-      <p class="hero-lead">We dug into cross-tabulations, following up to original report published. Regional splits, causal chains, and the real reasons some teams are drowning while others pull ahead. Every chart below recalculates live when you change the filters.</p>
+<!-- INSIGHTS PANE -->
+<div class="pane on" id="p-insights">
+  <div class="hero">
+    <div class="hero-eyebrow">#PracticalDataSurvey Hackathon Analysis</div>
+    <h1>2026 State of Data Engineering: What the Averages Hide</h1>
+    <p style="font-family:var(--font-mono);font-size:12px;color:var(--ink-muted);margin-bottom:14px;letter-spacing:0.5px;">
+      by <strong style="color:var(--ink-soft);">Narendranath Edara</strong> · February 2026
+    </p>
+    <p class="hero-lead">The original report gave us the headline numbers. But headline numbers are averages, and averages hide the most interesting patterns. We cross-tabulated every dimension in the survey against every other one — region × bottleneck, org size × AI maturity, modeling approach × fire-fighting rate — looking for the stories that only emerge when you cut the data two ways at once. Here are five patterns the published report didn't surface. Every chart on this page recalculates live when you change the sidebar filters.</p>
+  </div>
+
+  <div class="findings-box">
+    <div class="findings-card">
+      <div class="findings-title">Five patterns the published report didn't show</div>
+      <div class="findings-subtitle">These only emerge from cross-tabulations. Each one is backed by the interactive charts below — filter the sidebar to verify them yourself.</div>
+
+      <div class="finding" data-delay="0"><div class="finding-num">01</div><div class="finding-body">
+        <div class="finding-headline">There's a measurable doom loop: weak leadership → ad-hoc practices → constant fire-fighting <span class="tag tag-red">Root Cause</span></div>
+        <div class="finding-detail">When we cross-tabulated modeling approach against daily team focus, a clear pattern emerged: teams doing ad-hoc modeling (just adding tables as needed, no plan) report fire-fighting as part of their daily work at nearly <em>twice the rate</em> of teams using structured, reusable data models. Separately, teams that cite "leadership/organizational alignment" as their biggest bottleneck are also disproportionately stuck in fire-fighting mode. These aren't independent problems — they reinforce each other. Without leadership support, teams default to ad-hoc. Ad-hoc creates technical debt. Technical debt means everything is a fire. The data suggests structured modeling practices are the clearest way to break the cycle.</div>
+      </div></div>
+
+      <div class="finding" data-delay="80"><div class="finding-num">02</div><div class="finding-body">
+        <div class="finding-headline">Teams furthest along with AI report more data modeling pain, not less <span class="tag tag-red">Paradox</span></div>
+        <div class="finding-detail">This one surprised us. You'd expect teams with AI embedded in most workflows to have cleaner data and fewer modeling headaches. But when we cross-tabulated AI adoption level against specific modeling pain points, teams at the highest adoption tier reported <em>more issues with inconsistent schemas and naming conventions</em> than teams still experimenting. The likely explanation: AI tools make it easy to generate pipelines and transformations quickly, but speed without modeling discipline just creates a mess faster. AI amplifies whatever practices you already have — good or bad.</div>
+      </div></div>
+
+      <div class="finding" data-delay="160"><div class="finding-num">03</div><div class="finding-body">
+        <div class="finding-headline">Your company size predicts your biggest problem better than your tech stack does <span class="tag tag-amber">Org Size</span></div>
+        <div class="finding-detail">We cross-tabulated org size against biggest bottleneck and found a striking pattern. Small companies (&lt;50 people) overwhelmingly cite <em>talent — they can't hire or retain data engineers</em>. Once you pass roughly 200 employees, the bottleneck flips: it becomes leadership alignment and legacy tech debt. Mid-size organizations (200–10,000 employees) also show the <em>lowest average AI maturity</em> of any size bracket — they're caught in the middle, too big to move fast like a startup but too small to fund dedicated AI platform teams. The chart below lets you see this shift in real time.</div>
+      </div></div>
+
+      <div class="finding" data-delay="240"><div class="finding-num">04</div><div class="finding-body">
+        <div class="finding-headline">Every region's #1 bottleneck is different — one global data strategy won't fit <span class="tag tag-amber">Strategy</span></div>
+        <div class="finding-detail">The published report showed bottleneck distribution globally. But when we broke it out by region, the priorities diverged sharply. US/Canada teams are most held back by <em>legacy tech debt</em>. European teams cite <em>leadership and organizational alignment</em> most often. Asia-Pacific teams struggle with <em>poor requirements from upstream teams</em>. The bottleneck comparison table below recalculates with your filters — try selecting a region to see the full picture. For any organization with teams in multiple regions, this matters: the playbook that works in one geography may miss the mark entirely in another.</div>
+      </div></div>
+
+      <div class="finding" data-delay="320"><div class="finding-num">05</div><div class="finding-body">
+        <div class="finding-headline">On-prem teams fight fires at a significantly higher rate — a hidden cost no vendor TCO model captures <span class="tag tag-green">Hidden Cost</span></div>
+        <div class="finding-detail">When we cross-tabulated storage environment against daily team focus, on-prem warehouse teams reported fire-fighting at a <em>notably higher rate than cloud warehouse or lakehouse teams</em>. This operational burden — the human cost of keeping aging infrastructure running, handling manual deployments, dealing with capacity surprises — never appears in the spreadsheet when finance compares cloud vs. on-prem costs. But it's real, it's measurable in this data, and it directly affects team morale and the ability to work on strategic projects instead of emergencies.</div>
+      </div></div>
     </div>
+  </div>
 
-    <div class="findings-box">
-      <div class="findings-card">
-        <div class="findings-title">What we found that's not in the published report</div>
-        <div class="findings-subtitle">These patterns only emerge when you cross-tabulate dimensions against each other.</div>
-
-        <div class="finding" data-delay="0"><div class="finding-num">01</div><div class="finding-body">
-          <div class="finding-headline">Latin America is more AI-mature than the US or Europe <span class="tag tag-green">Surprising</span></div>
-          <div class="finding-detail">The report said "82% use AI daily." But that global average hides a stark regional gap. Latin America scores <em>2.1 out of 4</em> on AI maturity with only 5.8% reporting no adoption. Europe sits at <em>1.7</em> with the most teams still "experimenting."</div>
-        </div></div>
-
-        <div class="finding" data-delay="80"><div class="finding-num">02</div><div class="finding-body">
-          <div class="finding-headline">More AI adoption actually creates more schema chaos <span class="tag tag-red">Paradox</span></div>
-          <div class="finding-detail">Teams with AI embedded report <em>2.7x more "inconsistent schema" pain</em> than teams still experimenting (7.3% vs 2.7%). AI accelerates everything, including bad data modeling decisions.</div>
-        </div></div>
-
-        <div class="finding" data-delay="160"><div class="finding-num">03</div><div class="finding-body">
-          <div class="finding-headline">There's a quantifiable doom loop: leadership gap, ad-hoc modeling, fire-fighting <span class="tag tag-red">Root Cause</span></div>
-          <div class="finding-detail">38% of ad-hoc modelers are fighting fires. Among teams citing leadership gaps, <em>34.3% are fire-fighting</em>. Teams using semantic models? Only 18.6%. The causal chain is clear.</div>
-        </div></div>
-
-        <div class="finding" data-delay="240"><div class="finding-num">04</div><div class="finding-body">
-          <div class="finding-headline">Every region's biggest problem is different <span class="tag tag-amber">Strategy</span></div>
-          <div class="finding-detail">US/Canada: tech debt (31.2%). Europe: leadership (23.4%). Asia-Pacific: poor requirements (27.7%). Middle East: data quality at <em>2.5x the US rate</em>. A global data strategy that ignores this will fail.</div>
-        </div></div>
-
-        <div class="finding" data-delay="320"><div class="finding-num">05</div><div class="finding-body">
-          <div class="finding-headline">Small companies can't hire. Big companies can't lead. Mid-size companies stall on AI. <span class="tag tag-amber">Org Size</span></div>
-          <div class="finding-detail">Startups cite talent at <em>20.1%</em>, double the mid-size rate. Once past 50 people, the bottleneck flips to leadership and tech debt. And mid-size orgs (200-10K) have the <em>lowest AI maturity</em> of any bracket.</div>
-        </div></div>
-      </div>
-    </div>
-
-    <div class="content">
+  <div class="content">
     <div class="sec-divider"></div>
     <div class="sec-label">Headline Numbers</div>
-    <div class="sec-title">The numbers that define data engineering right now</div>
+    <div class="sec-title">The numbers that define data engineering in 2026</div>
     <div class="donut-row" id="donut-row">
-      <div class="donut-card"><div class="donut-wrap"><canvas id="d1"></canvas><div class="donut-center" id="d1v"></div></div><div class="donut-label">Fighting Fires</div><div class="donut-sub">as their primary daily focus</div></div>
+      <div class="donut-card"><div class="donut-wrap"><canvas id="d1"></canvas><div class="donut-center" id="d1v"></div></div><div class="donut-label">Fighting Fires</div><div class="donut-sub">includes fire-fighting in daily focus</div></div>
       <div class="donut-card"><div class="donut-wrap"><canvas id="d2"></canvas><div class="donut-center" id="d2v"></div></div><div class="donut-label">Using AI Daily+</div><div class="donut-sub">daily or multiple times per day</div></div>
-      <div class="donut-card"><div class="donut-wrap"><canvas id="d3"></canvas><div class="donut-center" id="d3v"></div></div><div class="donut-label">No Orchestration</div><div class="donut-sub">running ad-hoc or without tooling</div></div>
-      <div class="donut-card"><div class="donut-wrap"><canvas id="d4"></canvas><div class="donut-center" id="d4v"></div></div><div class="donut-label">Expect Team Growth</div><div class="donut-sub">anticipate headcount increasing</div></div>
-      <div class="donut-card"><div class="donut-wrap"><canvas id="d5"></canvas><div class="donut-center" id="d5v"></div></div><div class="donut-label">Have Modeling Pain</div><div class="donut-sub">report at least one pain point</div></div>
+      <div class="donut-card"><div class="donut-wrap"><canvas id="d3"></canvas><div class="donut-center" id="d3v"></div></div><div class="donut-label">No Orchestration</div><div class="donut-sub">running ad-hoc without tooling</div></div>
+      <div class="donut-card"><div class="donut-wrap"><canvas id="d4"></canvas><div class="donut-center" id="d4v"></div></div><div class="donut-label">Expect Team Growth</div><div class="donut-sub">anticipate headcount increasing in 2026</div></div>
+      <div class="donut-card"><div class="donut-wrap"><canvas id="d5"></canvas><div class="donut-center" id="d5v"></div></div><div class="donut-label">Have Modeling Pain</div><div class="donut-sub">report at least one modeling pain point</div></div>
     </div>
 
     <!-- HEATMAP -->

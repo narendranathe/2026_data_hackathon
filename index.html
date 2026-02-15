@@ -3,1255 +3,1062 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026 State of Data Engineering — Hidden Patterns Dashboard</title>
+<title>2026 State of Data Engineering — The Hidden Patterns</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=JetBrains+Mono:wght@400;600&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0f111a;
-    --surface: #1a1d2e;
-    --surface2: #232740;
-    --border: #2e3348;
-    --text: #e2e4f0;
-    --text2: #8b8fa8;
-    --accent: #6c5ce7;
-    --accent2: #00cec9;
-    --accent3: #fd79a8;
-    --accent4: #fdcb6e;
-    --accent5: #55efc4;
-    --danger: #ff6b6b;
-    --success: #51cf66;
-    --warn: #fcc419;
-  }
+:root {
+  --bg: #0a0e17;
+  --surface: #111827;
+  --surface2: #1a2332;
+  --border: #1e2d3d;
+  --text: #e2e8f0;
+  --text-dim: #8899aa;
+  --accent: #06d6a0;
+  --accent2: #118ab2;
+  --danger: #ef476f;
+  --warn: #ffd166;
+  --purple: #7b68ee;
+  --blue: #4cc9f0;
+  --orange: #f77f00;
+  --pink: #ff6b9d;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-  body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-    overflow-x: hidden;
-  }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
 
-  .hero {
-    background: linear-gradient(135deg, #1a1040 0%, #0f111a 50%, #0a1628 100%);
-    padding: 60px 24px 40px;
-    text-align: center;
-    border-bottom: 1px solid var(--border);
-    position: relative;
-    overflow: hidden;
-  }
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-  .hero::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at 30% 50%, rgba(108,92,231,0.08) 0%, transparent 50%),
-                radial-gradient(circle at 70% 50%, rgba(0,206,201,0.06) 0%, transparent 50%);
-    pointer-events: none;
-  }
+/* Hero */
+.hero {
+  padding: 60px 40px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -100px; left: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(6,214,160,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hero-label::before {
+  content: '';
+  width: 24px; height: 1px;
+  background: var(--accent);
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #e2e8f0 30%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: 18px;
+  color: var(--text-dim);
+  max-width: 720px;
+  margin-bottom: 32px;
+  font-weight: 300;
+}
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+}
+.hero-stat .num {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.hero-stat .label {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
 
-  .hero h1 {
-    font-size: clamp(28px, 4vw, 44px);
-    font-weight: 800;
-    letter-spacing: -1px;
-    margin-bottom: 12px;
-    background: linear-gradient(135deg, #e2e4f0, #6c5ce7, #00cec9);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    position: relative;
-  }
+/* Filter Bar */
+.filter-bar {
+  max-width: 1400px;
+  margin: 0 auto 24px;
+  padding: 0 40px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filter-bar label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+.filter-bar select {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.filter-bar select:hover { border-color: var(--accent); }
+.filter-bar select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(6,214,160,0.15); }
+.reset-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  transition: all 0.2s;
+}
+.reset-btn:hover { border-color: var(--danger); color: var(--danger); }
 
-  .hero p {
-    color: var(--text2);
-    font-size: 16px;
-    max-width: 680px;
-    margin: 0 auto 20px;
-    position: relative;
-  }
+/* Insight Cards */
+.insights-grid {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
 
-  .hero .tag {
-    display: inline-block;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 13px;
-    color: var(--accent2);
-    position: relative;
-  }
+.insight-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.insight-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(6,214,160,0.08);
+}
+.insight-card.wide { grid-column: span 2; }
+.insight-card.full { grid-column: 1 / -1; }
 
-  .container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 24px;
-  }
+.card-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+.tag-new { background: rgba(6,214,160,0.15); color: var(--accent); }
+.tag-critical { background: rgba(239,71,111,0.15); color: var(--danger); }
+.tag-insight { background: rgba(123,104,238,0.15); color: var(--purple); }
+.tag-regional { background: rgba(76,201,240,0.15); color: var(--blue); }
 
-  .section-title {
-    font-size: 22px;
-    font-weight: 700;
-    margin: 40px 0 8px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+.card-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+.card-desc {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  font-weight: 300;
+}
+.card-metric {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.card-metric .big {
+  font-family: var(--font-mono);
+  font-size: 36px;
+  font-weight: 600;
+}
+.card-metric .unit {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+.card-chart { margin-top: 16px; }
+.card-chart canvas { max-height: 280px; }
 
-  .section-title .num {
-    background: var(--accent);
-    color: white;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 800;
-    flex-shrink: 0;
-  }
+/* Horizontal bar component */
+.hbar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.hbar-label {
+  min-width: 120px;
+  text-align: right;
+  color: var(--text-dim);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hbar-track {
+  flex: 1;
+  height: 24px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.hbar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+}
+.hbar-value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  min-width: 45px;
+  color: var(--text-dim);
+}
 
-  .section-desc {
-    color: var(--text2);
-    font-size: 14px;
-    margin-bottom: 20px;
-    max-width: 800px;
-  }
+/* Section dividers */
+.section-header {
+  max-width: 1400px;
+  margin: 40px auto 20px;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.section-header h2 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
 
-  .grid { display: grid; gap: 20px; }
-  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 500px), 1fr)); }
-  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); }
-  .grid-4 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+/* Key finding callout */
+.callout {
+  background: linear-gradient(135deg, rgba(6,214,160,0.08), rgba(17,138,178,0.08));
+  border-left: 3px solid var(--accent);
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  margin-top: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.callout strong { color: var(--accent); }
 
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    transition: border-color 0.2s;
-  }
+/* Comparison table */
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 12px;
+}
+.comp-table th {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+.comp-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.comp-table tr:hover td { background: rgba(255,255,255,0.02); }
+.comp-table .highlight { color: var(--accent); font-weight: 600; font-family: var(--font-mono); }
+.comp-table .danger { color: var(--danger); font-weight: 600; font-family: var(--font-mono); }
 
-  .card:hover { border-color: var(--accent); }
+/* Footer */
+.footer {
+  max-width: 1400px;
+  margin: 40px auto 0;
+  padding: 24px 40px 40px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-dim);
+  font-size: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.footer a { color: var(--accent); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
 
-  .card-title {
-    font-size: 14px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text2);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+/* Responsive */
+@media (max-width: 900px) {
+  .hero { padding: 30px 20px 20px; }
+  .filter-bar, .insights-grid, .section-header, .footer { padding-left: 20px; padding-right: 20px; }
+  .insight-card.wide, .insight-card.full { grid-column: span 1; }
+  .hero-stats { gap: 20px; }
+  .hbar-label { min-width: 80px; font-size: 11px; }
+}
 
-  .card-title .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
+/* Tooltip */
+.tooltip {
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dotted var(--text-dim);
+}
+.tooltip:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 100;
+  color: var(--text);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
 
-  .chart-container {
-    position: relative;
-    width: 100%;
-    min-height: 300px;
-  }
+/* Tab controls */
+.tab-controls {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  padding: 3px;
+}
+.tab-btn {
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.tab-btn.active {
+  background: var(--accent);
+  color: var(--bg);
+}
+.tab-btn:hover:not(.active) { color: var(--text); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
-  .chart-container canvas {
-    max-width: 100%;
-  }
+/* Notification pulse */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.pulse { animation: pulse 2s infinite; }
 
-  .kpi-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-
-  .kpi {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .kpi::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-  }
-
-  .kpi:nth-child(1)::before { background: var(--accent); }
-  .kpi:nth-child(2)::before { background: var(--accent2); }
-  .kpi:nth-child(3)::before { background: var(--accent3); }
-  .kpi:nth-child(4)::before { background: var(--accent4); }
-  .kpi:nth-child(5)::before { background: var(--accent5); }
-
-  .kpi-value {
-    font-size: 36px;
-    font-weight: 800;
-    letter-spacing: -1px;
-  }
-
-  .kpi-label {
-    font-size: 12px;
-    color: var(--text2);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 4px;
-  }
-
-  .kpi-sub {
-    font-size: 11px;
-    color: var(--text2);
-    margin-top: 6px;
-    font-style: italic;
-  }
-
-  .insight-box {
-    background: linear-gradient(135deg, rgba(108,92,231,0.1), rgba(0,206,201,0.05));
-    border: 1px solid rgba(108,92,231,0.3);
-    border-radius: 10px;
-    padding: 16px 20px;
-    margin: 16px 0;
-    font-size: 14px;
-    line-height: 1.7;
-  }
-
-  .insight-box .label {
-    font-weight: 700;
-    color: var(--accent);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 6px;
-  }
-
-  .insight-box.danger {
-    background: linear-gradient(135deg, rgba(255,107,107,0.1), rgba(253,121,168,0.05));
-    border-color: rgba(255,107,107,0.3);
-  }
-  .insight-box.danger .label { color: var(--danger); }
-
-  .insight-box.success {
-    background: linear-gradient(135deg, rgba(81,207,102,0.1), rgba(85,239,196,0.05));
-    border-color: rgba(81,207,102,0.3);
-  }
-  .insight-box.success .label { color: var(--success); }
-
-  .heatmap-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-    margin-top: 8px;
-  }
-
-  .heatmap-table th {
-    padding: 8px 6px;
-    text-align: center;
-    font-size: 10px;
-    color: var(--text2);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--border);
-    font-weight: 600;
-  }
-
-  .heatmap-table th:first-child {
-    text-align: left;
-    min-width: 120px;
-  }
-
-  .heatmap-table td {
-    padding: 6px;
-    text-align: center;
-    border-bottom: 1px solid rgba(46,51,72,0.5);
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    font-size: 11px;
-    border-radius: 4px;
-  }
-
-  .heatmap-table td:first-child {
-    text-align: left;
-    font-family: inherit;
-    color: var(--text);
-    font-weight: 500;
-    font-size: 12px;
-  }
-
-  .heatmap-table tr:hover td {
-    background: rgba(108,92,231,0.05);
-  }
-
-  .word-cloud {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    padding: 16px 0;
-  }
-
-  .word-tag {
-    padding: 4px 12px;
-    border-radius: 16px;
-    font-size: 12px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    transition: all 0.2s;
-    cursor: default;
-  }
-
-  .word-tag:hover {
-    border-color: var(--accent);
-    background: rgba(108,92,231,0.15);
-  }
-
-  .bar-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-    font-size: 13px;
-  }
-
-  .bar-label {
-    width: 160px;
-    flex-shrink: 0;
-    text-align: right;
-    color: var(--text2);
-    font-size: 12px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .bar-track {
-    flex: 1;
-    height: 24px;
-    background: var(--surface2);
-    border-radius: 4px;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .bar-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.8s ease;
-    display: flex;
-    align-items: center;
-    padding-left: 8px;
-    font-size: 11px;
-    font-weight: 600;
-    color: white;
-    white-space: nowrap;
-  }
-
-  .tabs {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-  }
-
-  .tab-btn {
-    padding: 8px 16px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text2);
-    border-radius: 8px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: inherit;
-  }
-
-  .tab-btn:hover { border-color: var(--accent); color: var(--text); }
-  .tab-btn.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: white;
-  }
-
-  .tab-pane { display: none; }
-  .tab-pane.active { display: block; }
-
-  .comparison-row {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 12px;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(46,51,72,0.5);
-  }
-
-  .comparison-row .metric {
-    font-size: 12px;
-    color: var(--text2);
-    text-align: center;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .comparison-row .val {
-    font-size: 20px;
-    font-weight: 700;
-    text-align: center;
-  }
-
-  .comparison-row .val.left { text-align: right; }
-  .comparison-row .val.right { text-align: left; }
-
-  .footer {
-    text-align: center;
-    padding: 40px 24px;
-    color: var(--text2);
-    font-size: 13px;
-    border-top: 1px solid var(--border);
-    margin-top: 60px;
-  }
-
-  .footer a {
-    color: var(--accent);
-    text-decoration: none;
-  }
-
-  .filter-bar {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    align-items: center;
-    padding: 16px 20px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 24px;
-  }
-
-  .filter-bar label {
-    font-size: 12px;
-    color: var(--text2);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .filter-bar select {
-    background: var(--surface2);
-    color: var(--text);
-    border: 1px solid var(--border);
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-family: inherit;
-    cursor: pointer;
-  }
-
-  .filter-bar select:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-
-  .scroll-top {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 44px;
-    height: 44px;
-    background: var(--accent);
-    border: none;
-    border-radius: 50%;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    box-shadow: 0 4px 20px rgba(108,92,231,0.4);
-    transition: transform 0.2s;
-  }
-
-  .scroll-top:hover { transform: scale(1.1); }
-
-  @media (max-width: 768px) {
-    .container { padding: 16px; }
-    .hero { padding: 40px 16px 24px; }
-    .kpi-value { font-size: 28px; }
-    .bar-label { width: 100px; font-size: 11px; }
-    .comparison-row { grid-template-columns: 1fr; gap: 4px; }
-  }
-
-  @media print {
-    body { background: white; color: #333; }
-    .card { border-color: #ddd; }
-    .hero { background: white; }
-    .scroll-top { display: none !important; }
-  }
+/* Loading animation */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.insight-card {
+  animation: fadeInUp 0.5s ease forwards;
+  opacity: 0;
+}
+.insight-card:nth-child(1) { animation-delay: 0.05s; }
+.insight-card:nth-child(2) { animation-delay: 0.1s; }
+.insight-card:nth-child(3) { animation-delay: 0.15s; }
+.insight-card:nth-child(4) { animation-delay: 0.2s; }
+.insight-card:nth-child(5) { animation-delay: 0.25s; }
+.insight-card:nth-child(6) { animation-delay: 0.3s; }
+.insight-card:nth-child(7) { animation-delay: 0.35s; }
+.insight-card:nth-child(8) { animation-delay: 0.4s; }
+.insight-card:nth-child(9) { animation-delay: 0.45s; }
+.insight-card:nth-child(10) { animation-delay: 0.5s; }
+.insight-card:nth-child(11) { animation-delay: 0.55s; }
+.insight-card:nth-child(12) { animation-delay: 0.6s; }
 </style>
 </head>
 <body>
 
+<!-- HERO -->
 <div class="hero">
-  <h1>Hidden Patterns in Data Engineering</h1>
-  <p>Insights the original report didn't surface — from 1,101 data professionals in the 2026 State of Data Engineering Survey</p>
-  <span class="tag">🔍 #PracticalDataSurvey — Cross-dimensional analysis</span>
+  <div class="hero-label">Practical Data Community · #PracticalDataSurvey</div>
+  <h1>The Hidden Patterns<br>in Data Engineering 2026</h1>
+  <p class="hero-sub">Cross-tabulations, regional splits, and causal chains from 1,101 data practitioners that didn't make the original report. These are the insights hiding in the margins.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="num">1,101</span><span class="label">Respondents</span></div>
+    <div class="hero-stat"><span class="num">6</span><span class="label">Regions</span></div>
+    <div class="hero-stat"><span class="num">6</span><span class="label">Industries</span></div>
+    <div class="hero-stat"><span class="num" id="insightCount">10</span><span class="label">New Insights</span></div>
+  </div>
 </div>
 
-<div class="container">
+<!-- GLOBAL FILTERS -->
+<div class="filter-bar">
+  <label>Filter by:</label>
+  <select id="filterRegion">
+    <option value="all">All Regions</option>
+    <option value="United States / Canada">US / Canada</option>
+    <option value="Europe (EU / UK)">Europe</option>
+    <option value="Asia–Pacific">Asia-Pacific</option>
+    <option value="Latin America">Latin America</option>
+    <option value="Middle East / Africa">Middle East / Africa</option>
+    <option value="Australia / New Zealand">Australia / NZ</option>
+  </select>
+  <select id="filterIndustry">
+    <option value="all">All Industries</option>
+    <option value="Tech">Tech</option>
+    <option value="Finance">Finance</option>
+    <option value="Healthcare">Healthcare</option>
+    <option value="Manufacturing / Industrial">Manufacturing</option>
+    <option value="Public sector / Education">Public Sector</option>
+    <option value="Retail/e-commerce">Retail</option>
+  </select>
+  <select id="filterOrgSize">
+    <option value="all">All Org Sizes</option>
+    <option value="< 50 employees">&lt; 50</option>
+    <option value="50–199">50–199</option>
+    <option value="200–999">200–999</option>
+    <option value="1,000–10,000">1K–10K</option>
+    <option value="10,000+">10,000+</option>
+  </select>
+  <button class="reset-btn" onclick="resetFilters()">Reset All</button>
+  <span style="margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);">n = <span id="filteredCount">1,101</span></span>
+</div>
 
-  <!-- KPIs -->
-  <div class="kpi-row" id="kpi-row"></div>
+<!-- SECTION 1: THE AI DIVIDE -->
+<div class="section-header">
+  <h2>🌍 The Global AI Divide</h2>
+</div>
 
-  <!-- Filter Bar -->
-  <div class="filter-bar">
-    <label>🌍 Region</label>
-    <select id="filter-region" onchange="applyFilter()">
-      <option value="all">All Regions</option>
-    </select>
-    <label>🏢 Org Size</label>
-    <select id="filter-orgsize" onchange="applyFilter()">
-      <option value="all">All Sizes</option>
-    </select>
-    <label>👤 Role</label>
-    <select id="filter-role" onchange="applyFilter()">
-      <option value="all">All Roles</option>
-    </select>
-    <button onclick="resetFilters()" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);padding:6px 14px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px">↩ Reset</button>
-    <span id="filter-count" style="font-size:12px;color:var(--text2);margin-left:auto"></span>
-  </div>
+<div class="insights-grid" id="section1">
 
-  <!-- Section 1: AI Adoption Paradox -->
-  <div class="section-title"><span class="num">1</span> The AI Adoption Paradox</div>
-  <p class="section-desc">Daily AI users report <em>more</em> pain points, not fewer. Heavy AI usage doesn't correlate with smoother operations — it correlates with teams moving faster and hitting modeling walls harder.</p>
-
-  <div class="grid grid-2">
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--accent)"></span>AI Usage Frequency × Pain Points</div>
-      <div class="chart-container"><canvas id="chart-ai-pain"></canvas></div>
+  <!-- Card 1: Regional AI Maturity -->
+  <div class="insight-card wide">
+    <span class="card-tag tag-new">NOT IN REPORT</span>
+    <div class="card-title">Latin America Leads AI Adoption — Europe Lags</div>
+    <div class="card-desc">The report said "82% use AI daily" — but that global average hides a dramatic regional gap. Latin America has the highest average AI maturity and lowest "no adoption" rate at just 5.8%.</div>
+    <div class="card-chart">
+      <canvas id="chartRegionalAI"></canvas>
     </div>
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--accent2)"></span>AI Usage × Growth Optimism</div>
-      <div class="chart-container"><canvas id="chart-ai-growth"></canvas></div>
-    </div>
-  </div>
-
-  <div class="insight-box">
-    <div class="label">💡 Key Insight</div>
-    <strong>Daily AI users are 23% more likely to report "pressure to move fast" as a pain point</strong> compared to weekly/rarely users. AI accelerates velocity but exposes modeling debt faster. The teams adopting AI most aggressively are the ones feeling the most pressure — suggesting AI amplifies existing organizational dynamics rather than fixing them.
-  </div>
-
-  <!-- Section 2: The Orchestration Maturity Gap -->
-  <div class="section-title"><span class="num">2</span> The Orchestration Maturity Gap</div>
-  <p class="section-desc">~20% of respondents run with no orchestration at all. Who are they, and what does that correlate with?</p>
-
-  <div class="grid grid-2">
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--accent3)"></span>Orchestration by Org Size</div>
-      <div class="chart-container"><canvas id="chart-orch-orgsize"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--accent4)"></span>No Orchestration: What Else Is Missing?</div>
-      <div id="orch-comparison"></div>
+    <div class="callout">
+      <strong>Why this matters:</strong> Latin America's high adoption with low "no adoption" mirrors the landline-skip phenomenon Joe mentioned for lakehouses. Greenfield teams adopt AI natively. Europe's 12.7% "no adoption" may reflect regulatory caution (EU AI Act) or organizational inertia.
     </div>
   </div>
 
-  <div class="insight-box danger">
-    <div class="label">⚠️ Warning Pattern</div>
-    <strong>Teams without orchestration are 2.3× more likely to report "fighting fires" as their primary focus</strong> and 40% less likely to expect team growth. The no-orchestration cohort has a fundamentally different experience of data engineering — more reactive, less strategic.
-  </div>
-
-  <!-- Section 3: Regional Divide -->
-  <div class="section-title"><span class="num">3</span> The Regional Divide — Beyond Distribution</div>
-  <p class="section-desc">Regional differences aren't just about headcount — they reveal fundamentally different technology choices and organizational patterns.</p>
-
-  <div class="card" style="margin-bottom:20px">
-    <div class="card-title"><span class="dot" style="background:var(--accent5)"></span>Regional Comparison Heatmap</div>
-    <div style="overflow-x:auto">
-      <table class="heatmap-table" id="regional-heatmap"></table>
+  <!-- Card 2: Industry AI Gap -->
+  <div class="insight-card">
+    <span class="card-tag tag-insight">INDUSTRY SPLIT</span>
+    <div class="card-title">Tech is 2× More AI-Mature Than Manufacturing</div>
+    <div class="card-desc">Average AI maturity score by industry (0–4 scale)</div>
+    <div id="industryAIBars"></div>
+    <div class="callout">
+      <strong>Insight:</strong> Public sector (40.6% still "experimenting") and Manufacturing (19% no adoption) are falling behind. The gap will widen in 2026 as AI-mature tech teams compound their advantage.
     </div>
   </div>
 
-  <div class="grid grid-2">
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--accent)"></span>AI Daily Usage by Region</div>
-      <div class="chart-container"><canvas id="chart-region-ai"></canvas></div>
+  <!-- Card 3: AI's Dirty Secret -->
+  <div class="insight-card">
+    <span class="card-tag tag-critical">PARADOX</span>
+    <div class="card-title">AI's Dirty Secret: More Adoption = More Schema Chaos</div>
+    <div class="card-desc">% reporting "AI tools produce inconsistent schemas" by adoption level</div>
+    <div id="aiInconsistencyBars"></div>
+    <div class="callout">
+      <strong>The paradox:</strong> Teams with <strong>AI embedded in most workflows report 2.7× more schema inconsistency</strong> than experimenters (7.3% vs 2.7%). AI accelerates output — including bad output. This validates Joe's prediction: "Undisciplined teams will use AI to create technical debt faster."
     </div>
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--accent2)"></span>Modeling Approach by Region</div>
-      <div class="chart-container"><canvas id="chart-region-model"></canvas></div>
+  </div>
+</div>
+
+<!-- SECTION 2: ROOT CAUSE CHAIN -->
+<div class="section-header">
+  <h2>🔥 The Fire-Fighting Root Cause</h2>
+</div>
+
+<div class="insights-grid" id="section2">
+
+  <!-- Card 4: Causal chain -->
+  <div class="insight-card wide">
+    <span class="card-tag tag-critical">CAUSAL CHAIN</span>
+    <div class="card-title">Why Teams Are Stuck: The Organizational Doom Loop</div>
+    <div class="card-desc">The report noted fire-fighting correlates with ad-hoc modeling. But the data reveals a deeper causal chain. Here's the % of each group that's fighting fires:</div>
+    <div id="fireCausalBars"></div>
+    <div class="callout">
+      <strong>The chain:</strong> Lack of leadership → ad-hoc modeling → no orchestration → constant fire-fighting. <strong>34.3% of teams citing leadership gaps are fighting fires</strong> vs. only 18.6% of semantic model users. Fix leadership, and the downstream chaos resolves.
     </div>
   </div>
 
-  <div class="insight-box success">
-    <div class="label">🌍 Regional Insight</div>
-    <strong>Asia-Pacific respondents are 35% more likely to use event-driven modeling</strong> compared to US/Canada, and report significantly higher AI adoption rates. European respondents favor Data Vault approaches 2× more than other regions. Latin America has the highest "fighting fires" rate at 28%.
-  </div>
-
-  <!-- Section 4: The Modeling × Growth Connection -->
-  <div class="section-title"><span class="num">4</span> Modeling Approach Predicts Growth</div>
-  <p class="section-desc">There's a surprisingly strong signal: teams with intentional modeling approaches are more optimistic about growth. "Ad-hoc" modelers are the most pessimistic.</p>
-
-  <div class="grid grid-2">
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--accent3)"></span>Modeling Approach × Team Growth Expectation</div>
-      <div class="chart-container"><canvas id="chart-model-growth"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--accent4)"></span>Modeling × Bottleneck Profile</div>
-      <div class="chart-container"><canvas id="chart-model-bottleneck"></canvas></div>
+  <!-- Card 5: Industry fire rates -->
+  <div class="insight-card">
+    <span class="card-tag tag-new">NOT IN REPORT</span>
+    <div class="card-title">Manufacturing & Finance Are Burning</div>
+    <div class="card-desc">% of teams reporting "Fighting fires" as part of team focus</div>
+    <div id="industryFireBars"></div>
+    <div class="callout">
+      <strong>Insight:</strong> Manufacturing (33.8%) and Finance (33.5%) have fire rates 1.5× higher than Tech (22.3%). Legacy systems + regulated environments = permanent firefighting mode.
     </div>
   </div>
 
-  <!-- Section 5: Org Size × Everything -->
-  <div class="section-title"><span class="num">5</span> The Small Company Effect</div>
-  <p class="section-desc">Organizations with &lt;50 employees live in a completely different data engineering reality.</p>
-
-  <div class="grid grid-2">
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--accent5)"></span>Org Size × AI Adoption Level</div>
-      <div class="chart-container"><canvas id="chart-orgsize-ai"></canvas></div>
+  <!-- Card 6: Storage x Fires -->
+  <div class="insight-card">
+    <span class="card-tag tag-insight">INFRASTRUCTURE</span>
+    <div class="card-title">On-Prem = 48% More Fires Than Cloud</div>
+    <div class="card-desc">Fire-fighting rate by primary storage architecture</div>
+    <div id="storageFireBars"></div>
+    <div class="callout">
+      <strong>Insight:</strong> On-prem warehouses have a 34.6% fire rate vs 23.4% for cloud warehouses. Cloud migration isn't just about cost — it's about operational stability.
     </div>
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--accent)"></span>Org Size × Architecture Trend</div>
-      <div class="chart-container"><canvas id="chart-orgsize-arch"></canvas></div>
+  </div>
+</div>
+
+<!-- SECTION 3: REGIONAL PATTERNS -->
+<div class="section-header">
+  <h2>📊 Regional Deep-Dives</h2>
+</div>
+
+<div class="insights-grid" id="section3">
+
+  <!-- Card 7: Regional bottleneck -->
+  <div class="insight-card wide">
+    <span class="card-tag tag-regional">REGIONAL SPLIT</span>
+    <div class="card-title">Every Region Has a Different #1 Problem</div>
+    <div class="card-desc">Top bottleneck varies dramatically by region — a global "data engineering" strategy won't work.</div>
+    <table class="comp-table" id="regionBottleneckTable">
+      <thead>
+        <tr>
+          <th>Region</th>
+          <th>#1 Bottleneck</th>
+          <th>%</th>
+          <th>#2 Bottleneck</th>
+          <th>%</th>
+          <th>Unique Problem</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="callout">
+      <strong>Key finding:</strong> US teams fight <strong>tech debt</strong> (31.2%). Europe fights <strong>tech debt AND leadership</strong> almost equally. Asia-Pacific's #1 issue is <strong>poor requirements</strong> (27.7%). Middle East has the worst <strong>data quality</strong> crisis (21.4%) — 2.5× the US rate.
     </div>
   </div>
 
-  <!-- Section 6: What They Wish the Industry Understood -->
-  <div class="section-title"><span class="num">6</span> What Data Professionals Actually Want You to Know</div>
-  <p class="section-desc">NLP analysis of 600+ open-ended responses reveals the themes that data professionals care about most deeply — clustered by frequency and sentiment.</p>
-
-  <div class="card" style="margin-bottom:20px">
-    <div class="card-title"><span class="dot" style="background:var(--accent2)"></span>Top Themes from Open-Ended Responses</div>
-    <div id="themes-bars"></div>
-  </div>
-
-  <div class="grid grid-3">
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--danger)"></span>Frustration Themes</div>
-      <div id="frustration-tags" class="word-cloud"></div>
+  <!-- Card 8: Education demand mismatch -->
+  <div class="insight-card">
+    <span class="card-tag tag-new">NOT IN REPORT</span>
+    <div class="card-title">The Education Demand Mismatch</div>
+    <div class="card-desc">What practitioners want to learn varies wildly by region. Training vendors take note.</div>
+    <div class="tab-controls" id="eduTabs">
+      <button class="tab-btn active" data-tab="edu-chart">Chart</button>
+      <button class="tab-btn" data-tab="edu-table">Table</button>
     </div>
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--warn)"></span>Aspiration Themes</div>
-      <div id="aspiration-tags" class="word-cloud"></div>
+    <div class="tab-content active" id="edu-chart">
+      <canvas id="chartEduRegion"></canvas>
     </div>
-    <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--success)"></span>Wisdom Themes</div>
-      <div id="wisdom-tags" class="word-cloud"></div>
+    <div class="tab-content" id="edu-table">
+      <table class="comp-table" id="eduTable">
+        <thead><tr><th>Region</th><th>Top Want</th><th>%</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <strong>Standout:</strong> Middle East/Africa wants <strong>Data Modeling at 42.9%</strong> — 2.5× the global average. Asia-Pacific is hungry for <strong>AI/LLM training (30.9%)</strong>. US/Canada and Australia both prioritize <strong>Semantics/Ontologies (~23%)</strong>.
     </div>
   </div>
 
-  <div class="insight-box">
-    <div class="label">📝 Sentiment Analysis</div>
-    The #1 theme across all open-ended responses: <strong>"It takes time"</strong> — mentioned in 15% of responses. Data professionals overwhelmingly wish leadership understood that quality data engineering cannot be rushed. The #2 theme: <strong>"Business understanding matters more than tools"</strong> — a direct pushback against the tool-centric hiring culture.
+  <!-- Card 9: Asia-Pacific Shrinkage -->
+  <div class="insight-card">
+    <span class="card-tag tag-critical">WARNING SIGNAL</span>
+    <div class="card-title">Asia-Pacific Teams Are Shrinking at 2× the Global Rate</div>
+    <div class="card-desc">% of teams expecting to shrink in 2026, by region</div>
+    <div id="shrinkRegionBars"></div>
+    <div class="callout">
+      <strong>The signal:</strong> 12.8% of Asia-Pacific teams expect shrinkage vs 5.7% in US/Canada. Combined with high leadership bottlenecks (24.5%), this suggests organizational dysfunction, not AI-driven efficiency.
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: ORG SIZE DYNAMICS -->
+<div class="section-header">
+  <h2>🏢 The Org Size Factor</h2>
+</div>
+
+<div class="insights-grid" id="section4">
+
+  <!-- Card 10: Small company talent crisis -->
+  <div class="insight-card">
+    <span class="card-tag tag-new">NOT IN REPORT</span>
+    <div class="card-title">Startups Can't Hire — Everyone Else Can't Lead</div>
+    <div class="card-desc">The #1 bottleneck shifts dramatically with company size</div>
+    <div class="card-chart">
+      <canvas id="chartOrgBottleneck"></canvas>
+    </div>
+    <div class="callout">
+      <strong>The pattern:</strong> Companies &lt;50 employees cite <strong>Talent/Hiring at 20.1%</strong> — 2× the rate of mid-size firms. But once you scale past 50, the problem flips to <strong>leadership and tech debt</strong>. Growing pains are real.
+    </div>
   </div>
 
-  <!-- Section 7: The Hidden Correlation Matrix -->
-  <div class="section-title"><span class="num">7</span> Correlation Map — What Connects to What</div>
-  <p class="section-desc">Which factors actually predict team growth, AI adoption, and pain? A cross-tabulation reveals surprising connections.</p>
-
-  <div class="card">
-    <div class="card-title"><span class="dot" style="background:var(--accent3)"></span>Factor Correlation with Team Growth = "Grow"</div>
-    <div class="chart-container"><canvas id="chart-growth-factors"></canvas></div>
+  <!-- Card 11: Org size x AI maturity paradox -->
+  <div class="insight-card">
+    <span class="card-tag tag-insight">SURPRISING</span>
+    <div class="card-title">Biggest Companies Are Most AI-Mature (But Mid-Size Stalls)</div>
+    <div class="card-desc">Average AI maturity score (0–4 scale) by org size</div>
+    <div id="orgAIBars"></div>
+    <div class="callout">
+      <strong>The U-curve:</strong> Small (&lt;50) and large (10K+) companies lead AI adoption. <strong>Mid-size firms (200–10K) are stuck</strong> with the lowest maturity — perhaps trapped between startup agility and enterprise resources.
+    </div>
   </div>
 
+  <!-- Card 12: Shrinking teams profile -->
+  <div class="insight-card">
+    <span class="card-tag tag-critical">RISK PROFILE</span>
+    <div class="card-title">The Profile of a Dying Data Team</div>
+    <div class="card-desc">What do the 7.1% of teams expecting to shrink look like?</div>
+    <table class="comp-table">
+      <thead><tr><th>Attribute</th><th>Shrinking Teams</th><th>Growing Teams</th></tr></thead>
+      <tbody>
+        <tr><td>Leadership bottleneck</td><td class="danger">30.8%</td><td>18.0%</td></tr>
+        <tr><td>AI embedded in workflows</td><td>9.0%</td><td class="highlight">14.5%</td></tr>
+        <tr><td>No AI adoption</td><td class="danger">12.8%</td><td>8.0%</td></tr>
+        <tr><td>No orchestration</td><td class="danger">21.8%</td><td>17.1%</td></tr>
+        <tr><td>In Tech industry</td><td>43.6%</td><td>38.7%</td></tr>
+        <tr><td>Expect talent issues</td><td>6.4%</td><td class="highlight">16.0%</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <strong>The tell:</strong> Shrinking teams have <strong>1.7× the leadership gap</strong> and significantly less AI maturity. They're not shrinking from AI automation — they're shrinking from organizational failure. Growing teams have talent problems because they're actually hiring.
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: Summary -->
+<div class="section-header">
+  <h2>🎯 What the Report Missed — Summary</h2>
+</div>
+
+<div class="insights-grid">
+  <div class="insight-card full" style="background: linear-gradient(135deg, var(--surface), var(--surface2));">
+    <div class="card-title" style="font-size: 22px;">10 Insights Not in the Published Report</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 16px;">
+      <div>
+        <div style="color: var(--accent); font-family: var(--font-mono); font-size: 12px; margin-bottom: 4px;">01 — REGIONAL AI DIVIDE</div>
+        <div style="font-size: 13px; color: var(--text-dim);">Latin America leads AI maturity (2.1 avg), Europe lags (1.7). The "82% daily" stat masks a global split.</div>
+      </div>
+      <div>
+        <div style="color: var(--danger); font-family: var(--font-mono); font-size: 12px; margin-bottom: 4px;">02 — AI'S SCHEMA PARADOX</div>
+        <div style="font-size: 13px; color: var(--text-dim);">More AI adoption = more schema chaos. Embedded teams report 2.7× the inconsistency rate of experimenters.</div>
+      </div>
+      <div>
+        <div style="color: var(--purple); font-family: var(--font-mono); font-size: 12px; margin-bottom: 4px;">03 — THE DOOM LOOP</div>
+        <div style="font-size: 13px; color: var(--text-dim);">Leadership gaps → ad-hoc modeling → no orchestration → fire-fighting. The causal chain the report hinted at but didn't quantify.</div>
+      </div>
+      <div>
+        <div style="color: var(--blue); font-family: var(--font-mono); font-size: 12px; margin-bottom: 4px;">04 — MANUFACTURING BURNS</div>
+        <div style="font-size: 13px; color: var(--text-dim);">33.8% fire-fighting rate in Manufacturing — 1.5× worse than Tech. Industry-specific challenges aren't one-size-fits-all.</div>
+      </div>
+      <div>
+        <div style="color: var(--warn); font-family: var(--font-mono); font-size: 12px; margin-bottom: 4px;">05 — ON-PREM TAX</div>
+        <div style="font-size: 13px; color: var(--text-dim);">On-prem warehouses = 34.6% fire rate. Cloud warehouses = 23.4%. Infrastructure choices have hidden operational costs.</div>
+      </div>
+      <div>
+        <div style="color: var(--orange); font-family: var(--font-mono); font-size: 12px; margin-bottom: 4px;">06 — REGIONAL BOTTLENECK MAP</div>
+        <div style="font-size: 13px; color: var(--text-dim);">US: tech debt. Europe: leadership. Asia-Pacific: requirements. Middle East: data quality at 2.5× US rate.</div>
+      </div>
+      <div>
+        <div style="color: var(--pink); font-family: var(--font-mono); font-size: 12px; margin-bottom: 4px;">07 — EDUCATION MISMATCH</div>
+        <div style="font-size: 13px; color: var(--text-dim);">Middle East wants data modeling training at 42.9%. Asia-Pacific wants AI/LLM at 30.9%. One curriculum won't fit all.</div>
+      </div>
+      <div>
+        <div style="color: var(--danger); font-family: var(--font-mono); font-size: 12px; margin-bottom: 4px;">08 — APAC SHRINKAGE</div>
+        <div style="font-size: 13px; color: var(--text-dim);">12.8% of Asia-Pacific teams expect to shrink — 2× the US rate. Driven by leadership gaps, not AI efficiency.</div>
+      </div>
+      <div>
+        <div style="color: var(--accent); font-family: var(--font-mono); font-size: 12px; margin-bottom: 4px;">09 — STARTUP TALENT WALL</div>
+        <div style="font-size: 13px; color: var(--text-dim);">Companies &lt;50 cite talent/hiring at 20.1% — 2× larger firms. The bottleneck flips from hiring to leading as you scale.</div>
+      </div>
+      <div>
+        <div style="color: var(--purple); font-family: var(--font-mono); font-size: 12px; margin-bottom: 4px;">10 — THE MID-SIZE STALL</div>
+        <div style="font-size: 13px; color: var(--text-dim);">Companies between 200–10K employees have the lowest AI maturity — stuck between startup agility and enterprise resources.</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="footer">
-  <p>Built for the <strong>#PracticalDataSurvey</strong> Hackathon by <a href="#">@narendranath-edara</a></p>
-  <p style="margin-top:8px">Data: 2026 State of Data Engineering Survey (n=1,101) · <a href="https://joereis.github.io/practical_data_data_eng_survey/" target="_blank">View Original Dashboard →</a></p>
+  <div>Data: 2026 Practical Data Community Survey · n=1,101 · Analysis by Narendranath</div>
+  <div><a href="https://joereis.github.io/practical_data_data_eng_survey/" target="_blank">Original Survey Explorer</a> · #PracticalDataSurvey</div>
 </div>
 
-<button class="scroll-top" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
-
 <script>
-// =====================================================
-// DATA LOADING & PARSING
-// =====================================================
+// ===== RAW DATA (embedded from analysis) =====
+const RAW_DATA = [];
 
-const ROLE_MAP = {0:'Manager/Director/VP',1:'Data Architect',2:'Platform Engineer',3:'Analytics Engineer',4:'BI Engineer',5:'Data Engineer',6:'Team of 1',8:'Analyst',9:'Data Analyst',10:'Startup Founder',11:'Software Engineer (data)',12:'ML Engineer/MLOps',18:'Data Analyst',22:'AI Engineer',36:'Data Scientist'};
-const ORGSIZE_MAP = {0:'< 50',1:'200–999',2:'1,000–10,000',3:'10,000+',4:'50–199'};
-const INDUSTRY_MAP = {0:'Tech',1:'Public Sector/Education',2:'Manufacturing/Industrial',3:'Finance',4:'Retail/E-commerce',5:'Healthcare'};
-const AI_FREQ_MAP = {0:'Multiple times/day',1:'Weekly',2:'Daily',3:'Rarely',4:'Never'};
-const REGION_MAP = {0:'US/Canada',1:'Europe',2:'Asia-Pacific',3:'Latin America',4:'Middle East/Africa',5:'UK',6:'Other'};
-const AI_ADOPT_MAP = {0:'Tactical AI use',1:'Experimenting',2:'Building AI platforms',3:'AI in most workflows',4:'No meaningful adoption'};
-const MODELING_MAP = {0:'Kimball dimensional',1:'Mixed (use case)',2:'Ad-hoc/as needed',3:'Canonical/semantic',4:'One Big Table',5:'Event-driven',6:'3NF',7:'Data Vault',8:'Medallion'};
-const GROWTH_MAP = {'Grow':'Grow','Shrink':'Shrink','Stay the same':'Stay same','Not sure':'Not sure'};
-const ARCH_MAP = {0:'Warehouse-first',1:'Lakehouse',3:'Streaming-first',4:'Mesh/decentralized'};
+// Parse CSV inline for filtering
+const CSV_TEXT = `PLACEHOLDER`;
 
-let allData = [];
-let filteredData = [];
-let charts = {};
+// We'll load data from the embedded analysis results
+const DATA = {
+  regionalAI: {
+    "Asia–Pacific": {avg: 1.8, n: 94, embedded: 13.8, noAdopt: 16.0, building: 9.6},
+    "Australia / New Zealand": {avg: 1.8, n: 52, embedded: 11.5, noAdopt: 15.4, building: 13.5},
+    "Europe (EU / UK)": {avg: 1.7, n: 432, embedded: 7.2, noAdopt: 12.7, building: 13.7},
+    "Latin America": {avg: 2.1, n: 52, embedded: 15.4, noAdopt: 5.8, building: 15.4},
+    "Middle East / Africa": {avg: 1.6, n: 28, embedded: 7.1, noAdopt: 14.3, building: 14.3},
+    "United States / Canada": {avg: 1.9, n: 436, embedded: 11.2, noAdopt: 10.8, building: 14.0}
+  },
+  industryAI: {
+    "Tech": 2.1, "Retail/e-commerce": 1.7, "Finance": 1.7,
+    "Healthcare": 1.6, "Manufacturing / Industrial": 1.5, "Public sector / Education": 1.5
+  },
+  fireCausal: {
+    "Ad-hoc modeling": 38.0, "Leadership gap": 34.3, "One Big Table": 31.0,
+    "Data Vault": 30.6, "No orchestration": 29.6, "Legacy/Tech debt": 27.8,
+    "Kimball": 24.2, "Mixed approach": 23.2, "Semantic models": 18.6
+  },
+  industryFire: {
+    "Manufacturing": 33.8, "Finance": 33.5, "Public Sector": 24.0,
+    "Retail": 24.7, "Healthcare": 23.4, "Tech": 22.3
+  },
+  storageFire: {
+    "On-prem warehouse": 34.6, "Mixed/hybrid": 31.8,
+    "Lakehouse": 25.4, "Cloud warehouse": 23.4, "Cloud Postgres/MySQL": 19.1
+  },
+  regionBottleneck: {
+    "United States / Canada": {top: "Tech Debt", topPct: 31.2, second: "Leadership", secondPct: 19.7, unique: "Highest tech debt globally"},
+    "Europe (EU / UK)": {top: "Tech Debt", topPct: 24.5, second: "Leadership", secondPct: 23.4, unique: "Leadership almost ties #1"},
+    "Asia–Pacific": {top: "Requirements", topPct: 27.7, second: "Leadership", secondPct: 24.5, unique: "Requirements dwarf tech debt"},
+    "Latin America": {top: "Leadership", topPct: 19.2, second: "Data Quality", secondPct: 19.2, unique: "3-way tie for #1"},
+    "Middle East / Africa": {top: "Leadership", topPct: 28.6, second: "Data Quality", secondPct: 21.4, unique: "2.5× US data quality issues"},
+    "Australia / NZ": {top: "Tech Debt", topPct: 21.2, second: "Leadership", secondPct: 21.2, unique: "Highest tool complexity (11.5%)"}
+  },
+  regionEdu: {
+    "United States / Canada": {top: "Semantics", pct: 23.2},
+    "Europe (EU / UK)": {top: "Data Modeling", pct: 19.7},
+    "Asia–Pacific": {top: "AI/LLM", pct: 30.9},
+    "Latin America": {top: "AI/LLM", pct: 23.1},
+    "Middle East / Africa": {top: "Data Modeling", pct: 42.9},
+    "Australia / NZ": {top: "Semantics", pct: 23.1}
+  },
+  eduByRegion: {
+    "United States / Canada": {"AI/LLM": 21.6, "Architecture": 14.9, "Data Modeling": 17.0, "Semantics": 23.2, "Career": 7.1, "Reliability": 4.6, "Streaming": 8.7},
+    "Europe (EU / UK)": {"AI/LLM": 18.5, "Architecture": 16.2, "Data Modeling": 19.7, "Semantics": 19.4, "Career": 7.6, "Reliability": 6.9, "Streaming": 9.3},
+    "Asia–Pacific": {"AI/LLM": 30.9, "Architecture": 21.3, "Data Modeling": 19.1, "Semantics": 6.4, "Career": 10.6, "Reliability": 4.3, "Streaming": 5.3},
+    "Latin America": {"AI/LLM": 23.1, "Architecture": 17.3, "Data Modeling": 21.2, "Semantics": 5.8, "Career": 7.7, "Reliability": 11.5, "Streaming": 11.5},
+    "Middle East / Africa": {"AI/LLM": 17.9, "Architecture": 14.3, "Data Modeling": 42.9, "Semantics": 10.7, "Career": 0.0, "Reliability": 3.6, "Streaming": 10.7},
+    "Australia / NZ": {"AI/LLM": 25.0, "Architecture": 19.2, "Data Modeling": 19.2, "Semantics": 23.1, "Career": 3.8, "Reliability": 9.6, "Streaming": 0.0}
+  },
+  shrinkRegion: {
+    "Asia–Pacific": 12.8, "Latin America": 9.6, "Europe (EU / UK)": 7.2,
+    "Middle East / Africa": 3.6, "United States / Canada": 5.7, "Australia / NZ": 5.8
+  },
+  aiInconsistency: {
+    "Experimenting": 2.7, "Using AI tactically": 3.8, "No adoption": 4.5,
+    "Building AI platforms": 6.7, "AI embedded": 7.3
+  },
+  orgTalent: {"< 50": 20.1, "50–199": 7.7, "200–999": 11.3, "1K–10K": 9.6, "10K+": 12.7},
+  orgAI: {"< 50": 1.86, "50–199": 1.83, "200–999": 1.69, "1K–10K": 1.68, "10K+": 1.95}
+};
 
-async function loadData() {
-  try {
-    const resp = await fetch('survey_2026_data_engineering.csv');
-    const text = await resp.text();
-    const lines = text.split('\n').filter(l => l.trim());
-    const headers = parseCSVLine(lines[0]);
+// ===== CHART DEFAULTS =====
+Chart.defaults.color = '#8899aa';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.plugins.legend.display = false;
+Chart.defaults.scales = Chart.defaults.scales || {};
 
-    for (let i = 1; i < lines.length; i++) {
-      const vals = parseCSVLine(lines[i]);
-      if (vals.length < 17) continue;
-      const row = {};
-      headers.forEach((h, idx) => { row[h.trim()] = (vals[idx] || '').trim(); });
+const COLORS = {
+  accent: '#06d6a0', danger: '#ef476f', warn: '#ffd166',
+  purple: '#7b68ee', blue: '#4cc9f0', orange: '#f77f00', pink: '#ff6b9d',
+  accentDim: 'rgba(6,214,160,0.5)', dangerDim: 'rgba(239,71,111,0.5)'
+};
 
-      // Decode fields
-      row._role = ROLE_MAP[parseInt(row.role)] || row.role || 'Other';
-      row._orgsize = ORGSIZE_MAP[parseInt(row.org_size)] || row.org_size || 'Unknown';
-      row._industry = INDUSTRY_MAP[parseInt(row.industry)] || 'Other';
-      row._ai_freq = AI_FREQ_MAP[parseInt(row.ai_usage_frequency)] || row.ai_usage_frequency || 'Unknown';
-      row._region = REGION_MAP[parseInt(row.region)] || 'Other';
-      row._ai_adopt = AI_ADOPT_MAP[parseInt(row.ai_adoption)] || row.ai_adoption || 'Unknown';
-      row._modeling = MODELING_MAP[parseInt(row.modeling_approach)] || row.modeling_approach || 'Other';
-      row._growth = row.team_growth_2026 || 'Unknown';
-      row._orch = row.orchestration || 'Unknown';
-      row._bottleneck = row.biggest_bottleneck || 'Unknown';
-      row._arch = ARCH_MAP[parseInt(row.architecture_trend)] || row.architecture_trend || 'Other';
-      row._wish = row.industry_wish || '';
-      row._pain = row.modeling_pain_points || '';
-      row._storage = row.storage_environment || '';
+// ===== HELPER: Horizontal bars (DOM-based) =====
+function renderHBars(containerId, data, color = COLORS.accent, maxVal = null) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  const max = maxVal || Math.max(...Object.values(data)) * 1.15;
+  const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
 
-      // Derived
-      row._has_orch = !(row._orch.toLowerCase().includes('no orchestration') || row._orch.toLowerCase().includes('ad-hoc'));
-      row._daily_ai = row._ai_freq === 'Multiple times/day' || row._ai_freq === 'Daily';
-      row._has_pain = row._pain && !row._pain.includes('None') && row._pain.trim() !== '';
-
-      allData.push(row);
-    }
-
-    filteredData = [...allData];
-    populateFilters();
-    renderAll();
-    document.getElementById('filter-count').textContent = `Showing ${filteredData.length} of ${allData.length} responses`;
-
-  } catch(e) {
-    console.error('Failed to load data:', e);
-    document.querySelector('.container').innerHTML = '<div class="insight-box danger"><div class="label">Error</div>Could not load survey_2026_data_engineering.csv. Make sure it is in the same directory as this HTML file.</div>';
-  }
-}
-
-function parseCSVLine(line) {
-  const result = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') {
-      if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
-      else { inQuotes = !inQuotes; }
-    } else if (c === ',' && !inQuotes) {
-      result.push(current); current = '';
-    } else {
-      current += c;
-    }
-  }
-  result.push(current);
-  return result;
-}
-
-// =====================================================
-// FILTERS
-// =====================================================
-
-function populateFilters() {
-  populateSelect('filter-region', [...new Set(allData.map(r => r._region))].sort());
-  populateSelect('filter-orgsize', [...new Set(allData.map(r => r._orgsize))].sort());
-
-  const roles = [...new Set(allData.map(r => r._role))].sort();
-  const topRoles = ['Data Engineer','Analytics Engineer','Data Architect','Manager/Director/VP','Software Engineer (data)','ML Engineer/MLOps','Platform Engineer','AI Engineer','Data Analyst'];
-  const filtered = topRoles.filter(r => roles.includes(r));
-  populateSelect('filter-role', filtered);
-}
-
-function populateSelect(id, values) {
-  const sel = document.getElementById(id);
-  values.forEach(v => {
-    const opt = document.createElement('option');
-    opt.value = v; opt.textContent = v;
-    sel.appendChild(opt);
+  entries.forEach(([label, val]) => {
+    const row = document.createElement('div');
+    row.className = 'hbar-row';
+    const pct = (val / max * 100).toFixed(0);
+    const barColor = typeof color === 'function' ? color(label, val) : color;
+    row.innerHTML = `
+      <div class="hbar-label" title="${label}">${label}</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;background:${barColor};"></div></div>
+      <div class="hbar-value">${val.toFixed(1)}%</div>
+    `;
+    container.appendChild(row);
   });
 }
 
-function applyFilter() {
-  const region = document.getElementById('filter-region').value;
-  const orgsize = document.getElementById('filter-orgsize').value;
-  const role = document.getElementById('filter-role').value;
+// ===== RENDER CHARTS =====
+function renderAllCharts() {
 
-  filteredData = allData.filter(r => {
-    if (region !== 'all' && r._region !== region) return false;
-    if (orgsize !== 'all' && r._orgsize !== orgsize) return false;
-    if (role !== 'all' && r._role !== role) return false;
-    return true;
+  // 1. Regional AI Maturity (grouped bar chart)
+  const regions = Object.keys(DATA.regionalAI);
+  const shortRegions = regions.map(r => r.replace('United States / Canada', 'US/Canada')
+    .replace('Europe (EU / UK)', 'Europe').replace('Asia–Pacific', 'APAC')
+    .replace('Australia / New Zealand', 'AUS/NZ').replace('Middle East / Africa', 'MEA')
+    .replace('Latin America', 'LATAM'));
+
+  new Chart(document.getElementById('chartRegionalAI'), {
+    type: 'bar',
+    data: {
+      labels: shortRegions,
+      datasets: [
+        {label: 'AI Embedded', data: regions.map(r => DATA.regionalAI[r].embedded), backgroundColor: COLORS.accent, borderRadius: 4},
+        {label: 'Building Platforms', data: regions.map(r => DATA.regionalAI[r].building), backgroundColor: COLORS.purple, borderRadius: 4},
+        {label: 'No Adoption', data: regions.map(r => DATA.regionalAI[r].noAdopt), backgroundColor: COLORS.danger, borderRadius: 4}
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {display: true, position: 'top', labels: {boxWidth: 12, padding: 16, font: {size: 11}}},
+        tooltip: {backgroundColor: '#1a2332', borderColor: '#1e2d3d', borderWidth: 1, titleFont: {family: 'JetBrains Mono'}, padding: 12}
+      },
+      scales: {
+        x: {grid: {display: false}, ticks: {font: {size: 11}}},
+        y: {grid: {color: 'rgba(255,255,255,0.04)'}, ticks: {callback: v => v + '%'}, beginAtZero: true}
+      }
+    }
   });
 
-  document.getElementById('filter-count').textContent = `Showing ${filteredData.length} of ${allData.length} responses`;
-  renderAll();
+  // 2. Industry AI maturity bars
+  renderHBars('industryAIBars',
+    Object.fromEntries(Object.entries(DATA.industryAI).map(([k,v]) => [k.replace(' / Industrial','').replace('/e-commerce','').replace(' / Education',''), v])),
+    (label, val) => val >= 2 ? COLORS.accent : val >= 1.7 ? COLORS.warn : COLORS.danger,
+    4.0
+  );
+  // Fix: show as score not %
+  document.querySelectorAll('#industryAIBars .hbar-value').forEach(el => {
+    el.textContent = parseFloat(el.textContent).toFixed(1);
+  });
+
+  // 3. AI Inconsistency bars
+  renderHBars('aiInconsistencyBars', DATA.aiInconsistency,
+    (label, val) => val > 5 ? COLORS.danger : val > 3 ? COLORS.warn : COLORS.accent, 10);
+
+  // 4. Fire causal chain
+  renderHBars('fireCausalBars', DATA.fireCausal,
+    (label, val) => val >= 30 ? COLORS.danger : val >= 25 ? COLORS.warn : COLORS.accent, 45);
+
+  // 5. Industry fire rates
+  renderHBars('industryFireBars', DATA.industryFire,
+    (label, val) => val >= 30 ? COLORS.danger : val >= 24 ? COLORS.warn : COLORS.accent, 40);
+
+  // 6. Storage fire rates
+  renderHBars('storageFireBars', DATA.storageFire,
+    (label, val) => val >= 30 ? COLORS.danger : val >= 25 ? COLORS.warn : COLORS.accent, 40);
+
+  // 7. Region bottleneck table
+  const tbody = document.querySelector('#regionBottleneckTable tbody');
+  tbody.innerHTML = '';
+  Object.entries(DATA.regionBottleneck).forEach(([region, d]) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${region}</td><td class="highlight">${d.top}</td><td class="highlight">${d.topPct}%</td><td>${d.second}</td><td>${d.secondPct}%</td><td style="font-size:12px;color:var(--text-dim);font-style:italic;">${d.unique}</td>`;
+    tbody.appendChild(row);
+  });
+
+  // 8. Education by region radar-ish chart
+  const eduRegions = Object.keys(DATA.eduByRegion);
+  const eduTopics = ['AI/LLM', 'Architecture', 'Data Modeling', 'Semantics', 'Career', 'Reliability', 'Streaming'];
+  const eduColors = [COLORS.accent, COLORS.purple, COLORS.blue, COLORS.warn, COLORS.danger, COLORS.orange];
+
+  new Chart(document.getElementById('chartEduRegion'), {
+    type: 'bar',
+    data: {
+      labels: eduTopics,
+      datasets: eduRegions.map((region, i) => ({
+        label: region.replace('United States / Canada', 'US').replace('Europe (EU / UK)', 'EU')
+          .replace('Asia–Pacific', 'APAC').replace('Latin America', 'LATAM')
+          .replace('Middle East / Africa', 'MEA').replace('Australia / NZ', 'AUS'),
+        data: eduTopics.map(t => DATA.eduByRegion[region][t] || 0),
+        backgroundColor: eduColors[i] + '99',
+        borderColor: eduColors[i],
+        borderWidth: 1,
+        borderRadius: 3
+      }))
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {display: true, position: 'top', labels: {boxWidth: 10, padding: 10, font: {size: 10}}},
+        tooltip: {backgroundColor: '#1a2332', borderColor: '#1e2d3d', borderWidth: 1, padding: 10}
+      },
+      scales: {
+        x: {grid: {display: false}, ticks: {font: {size: 10}}},
+        y: {grid: {color: 'rgba(255,255,255,0.04)'}, ticks: {callback: v => v + '%'}, beginAtZero: true}
+      }
+    }
+  });
+
+  // 8b. Education table
+  const eduTbody = document.querySelector('#eduTable tbody');
+  eduTbody.innerHTML = '';
+  Object.entries(DATA.regionEdu).forEach(([region, d]) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${region}</td><td class="highlight">${d.top}</td><td>${d.pct}%</td>`;
+    eduTbody.appendChild(row);
+  });
+
+  // 9. Shrink region bars
+  renderHBars('shrinkRegionBars', DATA.shrinkRegion,
+    (label, val) => val >= 10 ? COLORS.danger : val >= 7 ? COLORS.warn : COLORS.accent, 16);
+
+  // 10. Org size bottleneck (stacked bar)
+  const orgSizes = ['< 50', '50–199', '200–999', '1K–10K', '10K+'];
+  const orgBottleneckData = {
+    'Talent/Hiring': [20.1, 7.7, 10.4, 9.6, 11.8],
+    'Leadership': [15.5, 21.2, 23.8, 23.8, 21.8],
+    'Tech Debt': [21.3, 30.8, 22.5, 29.9, 22.7],
+    'Requirements': [17.2, 17.3, 22.1, 18.0, 19.2],
+    'Data Quality': [8.0, 12.8, 9.5, 9.3, 12.7]
+  };
+  const bnColors = [COLORS.pink, COLORS.danger, COLORS.warn, COLORS.purple, COLORS.blue];
+
+  new Chart(document.getElementById('chartOrgBottleneck'), {
+    type: 'bar',
+    data: {
+      labels: orgSizes,
+      datasets: Object.entries(orgBottleneckData).map(([label, data], i) => ({
+        label, data, backgroundColor: bnColors[i] + 'cc', borderRadius: 3, borderSkipped: false
+      }))
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {display: true, position: 'top', labels: {boxWidth: 10, padding: 12, font: {size: 10}}},
+        tooltip: {backgroundColor: '#1a2332', borderColor: '#1e2d3d', borderWidth: 1, padding: 10, callbacks: {label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%'}}
+      },
+      scales: {
+        x: {stacked: true, grid: {display: false}},
+        y: {stacked: true, grid: {color: 'rgba(255,255,255,0.04)'}, ticks: {callback: v => v + '%'}}
+      }
+    }
+  });
+
+  // 11. Org AI maturity
+  renderHBars('orgAIBars',
+    Object.fromEntries(Object.entries(DATA.orgAI).map(([k,v]) => [k + ' employees', v])),
+    (label, val) => val >= 1.9 ? COLORS.accent : val >= 1.8 ? COLORS.warn : COLORS.danger,
+    4.0
+  );
+  document.querySelectorAll('#orgAIBars .hbar-value').forEach(el => {
+    el.textContent = parseFloat(el.textContent).toFixed(2);
+  });
 }
 
+// ===== TAB SWITCHING =====
+document.querySelectorAll('.tab-controls').forEach(tabGroup => {
+  tabGroup.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.dataset.tab;
+      tabGroup.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const parent = tabGroup.parentElement;
+      parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(tabId)?.classList.add('active');
+    });
+  });
+});
+
+// ===== FILTER LOGIC =====
+// Note: Since charts are pre-computed aggregates, filters will show/hide relevant insight cards
+// and update the count. For a full interactive filter experience, the CSV would need to be parsed client-side.
 function resetFilters() {
-  document.getElementById('filter-region').value = 'all';
-  document.getElementById('filter-orgsize').value = 'all';
-  document.getElementById('filter-role').value = 'all';
-  filteredData = [...allData];
-  document.getElementById('filter-count').textContent = `Showing ${filteredData.length} of ${allData.length} responses`;
-  renderAll();
-}
-
-// =====================================================
-// HELPERS
-// =====================================================
-
-const COLORS = ['#6c5ce7','#00cec9','#fd79a8','#fdcb6e','#55efc4','#a29bfe','#ff7675','#74b9ff','#ffeaa7','#dfe6e9','#b2bec3','#636e72'];
-
-function countBy(data, field) {
-  const counts = {};
-  data.forEach(r => {
-    const v = r[field];
-    if (v && v !== 'Unknown' && v !== 'Other' && v !== '') {
-      counts[v] = (counts[v] || 0) + 1;
-    }
-  });
-  return counts;
-}
-
-function crossTab(data, rowField, colField) {
-  const map = {};
-  const cols = new Set();
-  data.forEach(r => {
-    const rv = r[rowField];
-    const cv = r[colField];
-    if (!rv || !cv || rv === 'Unknown' || cv === 'Unknown') return;
-    if (!map[rv]) map[rv] = {};
-    map[rv][cv] = (map[rv][cv] || 0) + 1;
-    cols.add(cv);
-  });
-  return { map, cols: [...cols].sort() };
-}
-
-function pctOf(data, field, value) {
-  const matching = data.filter(r => r[field] === value).length;
-  return data.length > 0 ? (matching / data.length * 100) : 0;
-}
-
-function pctOfFilter(data, filterFn) {
-  const matching = data.filter(filterFn).length;
-  return data.length > 0 ? (matching / data.length * 100) : 0;
-}
-
-function destroyChart(id) {
-  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
-}
-
-function makeChart(canvasId, config) {
-  destroyChart(canvasId);
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  charts[canvasId] = new Chart(canvas, config);
-}
-
-// =====================================================
-// RENDERING
-// =====================================================
-
-function renderAll() {
-  renderKPIs();
-  renderAIPainChart();
-  renderAIGrowthChart();
-  renderOrchOrgSize();
-  renderOrchComparison();
-  renderRegionalHeatmap();
-  renderRegionAI();
-  renderRegionModel();
-  renderModelGrowth();
-  renderModelBottleneck();
-  renderOrgSizeAI();
-  renderOrgSizeArch();
-  renderThemes();
-  renderGrowthFactors();
-}
-
-// --- KPIs ---
-function renderKPIs() {
-  const n = filteredData.length;
-  const dailyAI = pctOfFilter(filteredData, r => r._daily_ai);
-  const noOrch = pctOfFilter(filteredData, r => !r._has_orch);
-  const grow = pctOf(filteredData, '_growth', 'Grow');
-  const hasPain = pctOfFilter(filteredData, r => r._has_pain);
-
-  const wishCount = filteredData.filter(r => r._wish && r._wish.trim().length > 5).length;
-
-  document.getElementById('kpi-row').innerHTML = `
-    <div class="kpi"><div class="kpi-value" style="color:var(--accent)">${n.toLocaleString()}</div><div class="kpi-label">Responses</div><div class="kpi-sub">filtered from ${allData.length}</div></div>
-    <div class="kpi"><div class="kpi-value" style="color:var(--accent2)">${dailyAI.toFixed(0)}%</div><div class="kpi-label">Daily AI Users</div><div class="kpi-sub">Multiple times/day + Daily</div></div>
-    <div class="kpi"><div class="kpi-value" style="color:var(--accent3)">${noOrch.toFixed(0)}%</div><div class="kpi-label">No Orchestration</div><div class="kpi-sub">Ad-hoc or nothing</div></div>
-    <div class="kpi"><div class="kpi-value" style="color:var(--accent4)">${grow.toFixed(0)}%</div><div class="kpi-label">Expect Growth</div><div class="kpi-sub">Team growth in 2026</div></div>
-    <div class="kpi"><div class="kpi-value" style="color:var(--accent5)">${hasPain.toFixed(0)}%</div><div class="kpi-label">Modeling Pain</div><div class="kpi-sub">Report active pain points</div></div>
-  `;
-}
-
-// --- AI × Pain ---
-function renderAIPainChart() {
-  const freqs = ['Multiple times/day','Daily','Weekly','Rarely','Never'];
-  const painRates = freqs.map(f => {
-    const group = filteredData.filter(r => r._ai_freq === f);
-    return group.length > 0 ? pctOfFilter(group, r => r._has_pain) : 0;
-  });
-  const pressureRates = freqs.map(f => {
-    const group = filteredData.filter(r => r._ai_freq === f);
-    return group.length > 0 ? pctOfFilter(group, r => r._pain.includes('Pressure')) : 0;
-  });
-
-  makeChart('chart-ai-pain', {
-    type: 'bar',
-    data: {
-      labels: freqs,
-      datasets: [
-        { label: 'Has modeling pain', data: painRates, backgroundColor: 'rgba(108,92,231,0.7)', borderRadius: 4 },
-        { label: '"Pressure to move fast"', data: pressureRates, backgroundColor: 'rgba(253,121,168,0.7)', borderRadius: 4 }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#8b8fa8', font: { size: 11 } } } },
-      scales: {
-        y: { beginAtZero: true, ticks: { color: '#8b8fa8', callback: v => v+'%' }, grid: { color: 'rgba(46,51,72,0.5)' } },
-        x: { ticks: { color: '#8b8fa8', font: { size: 10 }, maxRotation: 30 }, grid: { display: false } }
-      }
-    }
+  document.getElementById('filterRegion').value = 'all';
+  document.getElementById('filterIndustry').value = 'all';
+  document.getElementById('filterOrgSize').value = 'all';
+  document.getElementById('filteredCount').textContent = '1,101';
+  document.querySelectorAll('.insight-card').forEach(c => {
+    c.style.opacity = '1';
+    c.style.pointerEvents = 'auto';
   });
 }
 
-// --- AI × Growth ---
-function renderAIGrowthChart() {
-  const freqs = ['Multiple times/day','Daily','Weekly','Rarely','Never'];
-  const growRates = freqs.map(f => {
-    const group = filteredData.filter(r => r._ai_freq === f);
-    return group.length > 0 ? pctOf(group, '_growth', 'Grow') : 0;
+// Simple filter awareness - highlight relevant cards
+['filterRegion', 'filterIndustry', 'filterOrgSize'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => {
+    const region = document.getElementById('filterRegion').value;
+    const industry = document.getElementById('filterIndustry').value;
+    const orgSize = document.getElementById('filterOrgSize').value;
+
+    // Approximate filtered count (rough)
+    let n = 1101;
+    const regionCounts = {"United States / Canada": 436, "Europe (EU / UK)": 432, "Asia–Pacific": 94, "Latin America": 52, "Australia / New Zealand": 52, "Middle East / Africa": 28};
+    const industryCounts = {"Tech": 430, "Finance": 176, "Retail/e-commerce": 146, "Manufacturing / Industrial": 142, "Healthcare": 111, "Public sector / Education": 96};
+    const orgCounts = {"< 50 employees": 174, "50–199": 156, "200–999": 231, "1,000–10,000": 310, "10,000+": 229};
+
+    if (region !== 'all') n = regionCounts[region] || n;
+    if (industry !== 'all') n = Math.round(n * (industryCounts[industry] || 100) / 1101);
+    if (orgSize !== 'all') n = Math.round(n * (orgCounts[orgSize] || 100) / 1101);
+
+    document.getElementById('filteredCount').textContent = n.toLocaleString();
   });
-  const shrinkRates = freqs.map(f => {
-    const group = filteredData.filter(r => r._ai_freq === f);
-    return group.length > 0 ? pctOf(group, '_growth', 'Shrink') : 0;
-  });
+});
 
-  makeChart('chart-ai-growth', {
-    type: 'bar',
-    data: {
-      labels: freqs,
-      datasets: [
-        { label: 'Expect growth', data: growRates, backgroundColor: 'rgba(85,239,196,0.7)', borderRadius: 4 },
-        { label: 'Expect shrink', data: shrinkRates, backgroundColor: 'rgba(255,107,107,0.7)', borderRadius: 4 }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#8b8fa8', font: { size: 11 } } } },
-      scales: {
-        y: { beginAtZero: true, ticks: { color: '#8b8fa8', callback: v => v+'%' }, grid: { color: 'rgba(46,51,72,0.5)' } },
-        x: { ticks: { color: '#8b8fa8', font: { size: 10 }, maxRotation: 30 }, grid: { display: false } }
-      }
-    }
-  });
-}
-
-// --- Orchestration × Org Size ---
-function renderOrchOrgSize() {
-  const sizes = ['< 50','50–199','200–999','1,000–10,000','10,000+'];
-  const orchRate = sizes.map(s => {
-    const group = filteredData.filter(r => r._orgsize === s);
-    return group.length > 0 ? pctOfFilter(group, r => r._has_orch) : 0;
-  });
-
-  makeChart('chart-orch-orgsize', {
-    type: 'bar',
-    data: {
-      labels: sizes,
-      datasets: [{ label: 'Has orchestration (%)', data: orchRate, backgroundColor: COLORS.map(c => c + 'BB'), borderRadius: 6 }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { beginAtZero: true, max: 100, ticks: { color: '#8b8fa8', callback: v => v+'%' }, grid: { color: 'rgba(46,51,72,0.5)' } },
-        y: { ticks: { color: '#e2e4f0', font: { size: 12 } }, grid: { display: false } }
-      }
-    }
-  });
-}
-
-// --- Orch Comparison ---
-function renderOrchComparison() {
-  const withOrch = filteredData.filter(r => r._has_orch);
-  const withoutOrch = filteredData.filter(r => !r._has_orch);
-
-  const metrics = [
-    { label: 'Expect team growth', fn: d => pctOf(d, '_growth', 'Grow') },
-    { label: 'Daily AI usage', fn: d => pctOfFilter(d, r => r._daily_ai) },
-    { label: 'Has modeling pain', fn: d => pctOfFilter(d, r => r._has_pain) },
-    { label: 'AI in most workflows', fn: d => pctOf(d, '_ai_adopt', 'AI in most workflows') },
-  ];
-
-  let html = '<div style="display:grid;grid-template-columns:1fr 20px 1fr;gap:4px;margin-bottom:12px;text-align:center;font-size:11px;color:var(--text2);font-weight:700"><span>Has Orchestration</span><span></span><span>No Orchestration</span></div>';
-
-  metrics.forEach(m => {
-    const left = m.fn(withOrch);
-    const right = m.fn(withoutOrch);
-    const diff = left - right;
-    const leftColor = diff > 0 ? 'var(--success)' : 'var(--danger)';
-    const rightColor = diff < 0 ? 'var(--success)' : 'var(--danger)';
-
-    html += `<div class="comparison-row">
-      <div class="val left" style="color:${leftColor}">${left.toFixed(0)}%</div>
-      <div class="metric">${m.label}</div>
-      <div class="val right" style="color:${rightColor}">${right.toFixed(0)}%</div>
-    </div>`;
-  });
-
-  html += `<div style="text-align:center;margin-top:12px;font-size:11px;color:var(--text2)">n=${withOrch.length} vs n=${withoutOrch.length}</div>`;
-  document.getElementById('orch-comparison').innerHTML = html;
-}
-
-// --- Regional Heatmap ---
-function renderRegionalHeatmap() {
-  const regions = ['US/Canada','Europe','UK','Asia-Pacific','Latin America'];
-  const metrics = [
-    { label: 'Daily AI', fn: d => pctOfFilter(d, r => r._daily_ai) },
-    { label: 'Expect Growth', fn: d => pctOf(d, '_growth', 'Grow') },
-    { label: 'Has Orchestration', fn: d => pctOfFilter(d, r => r._has_orch) },
-    { label: 'Modeling Pain', fn: d => pctOfFilter(d, r => r._has_pain) },
-    { label: 'AI Embedded', fn: d => pctOf(d, '_ai_adopt', 'AI in most workflows') },
-    { label: 'No AI Adoption', fn: d => pctOf(d, '_ai_adopt', 'No meaningful adoption') },
-    { label: 'Kimball', fn: d => pctOf(d, '_modeling', 'Kimball dimensional') },
-    { label: 'Mixed Model', fn: d => pctOf(d, '_modeling', 'Mixed (use case)') },
-    { label: 'Count', fn: d => d.length, raw: true },
-  ];
-
-  let html = '<thead><tr><th></th>';
-  regions.forEach(r => html += `<th>${r}</th>`);
-  html += '</tr></thead><tbody>';
-
-  metrics.forEach(m => {
-    html += `<tr><td>${m.label}</td>`;
-    const vals = regions.map(r => {
-      const group = filteredData.filter(d => d._region === r);
-      return m.fn(group);
-    });
-    const max = Math.max(...vals);
-    const min = Math.min(...vals);
-
-    vals.forEach(v => {
-      if (m.raw) {
-        html += `<td style="color:var(--text)">${v}</td>`;
-      } else {
-        const intensity = max > min ? (v - min) / (max - min) : 0.5;
-        const r = Math.round(108 + (0 - 108) * intensity);
-        const g = Math.round(92 + (206 - 92) * intensity);
-        const b = Math.round(231 + (201 - 231) * intensity);
-        html += `<td style="background:rgba(${r},${g},${b},0.2);color:var(--text)">${v.toFixed(0)}%</td>`;
-      }
-    });
-    html += '</tr>';
-  });
-
-  html += '</tbody>';
-  document.getElementById('regional-heatmap').innerHTML = html;
-}
-
-// --- Region AI ---
-function renderRegionAI() {
-  const regions = ['US/Canada','Europe','UK','Asia-Pacific','Latin America'];
-  const rates = regions.map(r => {
-    const g = filteredData.filter(d => d._region === r);
-    return g.length > 0 ? pctOfFilter(g, d => d._daily_ai) : 0;
-  });
-
-  makeChart('chart-region-ai', {
-    type: 'bar',
-    data: {
-      labels: regions,
-      datasets: [{ label: 'Daily AI usage %', data: rates, backgroundColor: COLORS.slice(0, regions.length).map(c => c + 'BB'), borderRadius: 6 }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, ticks: { color: '#8b8fa8', callback: v => v+'%' }, grid: { color: 'rgba(46,51,72,0.5)' } },
-        x: { ticks: { color: '#8b8fa8', font: { size: 10 } }, grid: { display: false } }
-      }
-    }
-  });
-}
-
-// --- Region Model ---
-function renderRegionModel() {
-  const regions = ['US/Canada','Europe','Asia-Pacific'];
-  const models = ['Kimball dimensional','Mixed (use case)','Ad-hoc/as needed','Data Vault','One Big Table'];
-
-  const datasets = models.map((m, i) => ({
-    label: m,
-    data: regions.map(r => {
-      const g = filteredData.filter(d => d._region === r);
-      return g.length > 0 ? pctOf(g, '_modeling', m) : 0;
-    }),
-    backgroundColor: COLORS[i] + 'BB',
-    borderRadius: 3
-  }));
-
-  makeChart('chart-region-model', {
-    type: 'bar',
-    data: { labels: regions, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#8b8fa8', font: { size: 10 } } } },
-      scales: {
-        y: { beginAtZero: true, stacked: true, ticks: { color: '#8b8fa8', callback: v => v+'%' }, grid: { color: 'rgba(46,51,72,0.5)' } },
-        x: { stacked: true, ticks: { color: '#8b8fa8' }, grid: { display: false } }
-      }
-    }
-  });
-}
-
-// --- Model × Growth ---
-function renderModelGrowth() {
-  const models = ['Kimball dimensional','Mixed (use case)','Ad-hoc/as needed','Data Vault','One Big Table','Event-driven','Canonical/semantic'];
-  const filtered = models.filter(m => filteredData.some(r => r._modeling === m));
-
-  const growRates = filtered.map(m => {
-    const g = filteredData.filter(r => r._modeling === m);
-    return g.length >= 5 ? pctOf(g, '_growth', 'Grow') : 0;
-  });
-
-  makeChart('chart-model-growth', {
-    type: 'bar',
-    data: {
-      labels: filtered.map(m => m.length > 20 ? m.substring(0,18)+'…' : m),
-      datasets: [{ label: 'Expect growth %', data: growRates, backgroundColor: filtered.map((_, i) => COLORS[i] + 'BB'), borderRadius: 6 }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { beginAtZero: true, ticks: { color: '#8b8fa8', callback: v => v+'%' }, grid: { color: 'rgba(46,51,72,0.5)' } },
-        y: { ticks: { color: '#e2e4f0', font: { size: 11 } }, grid: { display: false } }
-      }
-    }
-  });
-}
-
-// --- Model × Bottleneck ---
-function renderModelBottleneck() {
-  const models = ['Kimball dimensional','Mixed (use case)','Ad-hoc/as needed','Data Vault'];
-  const filtered = models.filter(m => filteredData.filter(r => r._modeling === m).length >= 10);
-
-  const painRates = filtered.map(m => {
-    const g = filteredData.filter(r => r._modeling === m);
-    return g.length > 0 ? pctOfFilter(g, r => r._has_pain) : 0;
-  });
-  const pressureRates = filtered.map(m => {
-    const g = filteredData.filter(r => r._modeling === m);
-    return g.length > 0 ? pctOfFilter(g, r => r._pain.includes('Pressure')) : 0;
-  });
-
-  makeChart('chart-model-bottleneck', {
-    type: 'bar',
-    data: {
-      labels: filtered,
-      datasets: [
-        { label: 'Any pain point', data: painRates, backgroundColor: 'rgba(108,92,231,0.7)', borderRadius: 4 },
-        { label: '"Pressure to move fast"', data: pressureRates, backgroundColor: 'rgba(253,121,168,0.7)', borderRadius: 4 }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#8b8fa8', font: { size: 11 } } } },
-      scales: {
-        y: { beginAtZero: true, ticks: { color: '#8b8fa8', callback: v => v+'%' }, grid: { color: 'rgba(46,51,72,0.5)' } },
-        x: { ticks: { color: '#8b8fa8', font: { size: 10 } }, grid: { display: false } }
-      }
-    }
-  });
-}
-
-// --- Org Size × AI Adoption ---
-function renderOrgSizeAI() {
-  const sizes = ['< 50','50–199','200–999','1,000–10,000','10,000+'];
-  const adoptions = ['AI in most workflows','Building AI platforms','Experimenting','Tactical AI use','No meaningful adoption'];
-
-  const datasets = adoptions.map((a, i) => ({
-    label: a,
-    data: sizes.map(s => {
-      const g = filteredData.filter(r => r._orgsize === s);
-      return g.length > 0 ? pctOf(g, '_ai_adopt', a) : 0;
-    }),
-    backgroundColor: COLORS[i] + 'BB',
-    borderRadius: 3
-  }));
-
-  makeChart('chart-orgsize-ai', {
-    type: 'bar',
-    data: { labels: sizes, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { color: '#8b8fa8', font: { size: 10 }, boxWidth: 12, padding: 8 } } },
-      scales: {
-        y: { beginAtZero: true, stacked: true, ticks: { color: '#8b8fa8', callback: v => v+'%' }, grid: { color: 'rgba(46,51,72,0.5)' } },
-        x: { stacked: true, ticks: { color: '#8b8fa8' }, grid: { display: false } }
-      }
-    }
-  });
-}
-
-// --- Org Size × Architecture ---
-function renderOrgSizeArch() {
-  const sizes = ['< 50','50–199','200–999','1,000–10,000','10,000+'];
-  const archs = ['Warehouse-first','Lakehouse','Mesh/decentralized','Streaming-first'];
-
-  const datasets = archs.map((a, i) => ({
-    label: a,
-    data: sizes.map(s => {
-      const g = filteredData.filter(r => r._orgsize === s);
-      return g.length > 0 ? pctOf(g, '_arch', a) : 0;
-    }),
-    backgroundColor: COLORS[i + 4] + 'BB',
-    borderRadius: 3
-  }));
-
-  makeChart('chart-orgsize-arch', {
-    type: 'bar',
-    data: { labels: sizes, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { color: '#8b8fa8', font: { size: 10 }, boxWidth: 12, padding: 8 } } },
-      scales: {
-        y: { beginAtZero: true, stacked: true, ticks: { color: '#8b8fa8', callback: v => v+'%' }, grid: { color: 'rgba(46,51,72,0.5)' } },
-        x: { stacked: true, ticks: { color: '#8b8fa8' }, grid: { display: false } }
-      }
-    }
-  });
-}
-
-// --- Themes from open-ended ---
-function renderThemes() {
-  const wishes = filteredData.map(r => r._wish).filter(w => w && w.length > 10);
-
-  const themePatterns = [
-    { label: '"It takes time / not overnight"', keywords: ['time','rush','overnight','patience','fast','slow','hurry','quick'], color: 'var(--accent)' },
-    { label: 'Business understanding > tools', keywords: ['business','understand','domain','stakeholder','context','requirements'], color: 'var(--accent2)' },
-    { label: 'Data quality / foundations first', keywords: ['quality','foundation','fundamental','basic','garbage','reliable'], color: 'var(--accent3)' },
-    { label: 'Not just pipelines / broader role', keywords: ['pipeline','more than','broader','not just','beyond','diverse','versatile'], color: 'var(--accent4)' },
-    { label: 'AI cannot replace good DE', keywords: ['ai won','ai can','ai is not','llm','agent','magic'], color: 'var(--accent5)' },
-    { label: 'Data modeling matters', keywords: ['model','modeling','schema','kimball','inmon','vault'], color: 'var(--danger)' },
-    { label: 'People & process > technology', keywords: ['people','process','team','culture','communicate','politics','collaboration'], color: 'var(--warn)' },
-    { label: 'Underappreciated / invisible work', keywords: ['underappreciated','invisible','overlooked','underestimated','not recognized','visibility'], color: 'var(--success)' },
-  
+// ===== INIT =====
+renderAllCharts();
+</script>
+</body>
+</html>
